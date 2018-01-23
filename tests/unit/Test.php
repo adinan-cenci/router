@@ -1,5 +1,5 @@
 <?php
-use \AdinanCenci\DotNotation\Dot;
+use \AdinanCenci\Router\Router;
 
 class Test extends \PHPUnit\Framework\TestCase
 {
