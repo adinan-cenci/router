@@ -12,6 +12,8 @@ class Router
         'delete'    => array()
     );
 
+    protected $error404;
+
     /**
      * @param string $method Post, get, put etc.
      * @param string $pattern Regex pattern
@@ -50,20 +52,30 @@ class Router
         return $this;
     }
 
+    public function set404($callback) 
+    {
+        $this->error404 = $callback;
+        return $this;
+    }
+
     /**
      * Returns everything after the domain
      * @return string
      */
-    protected function getUri() 
+    public function getUri() 
     {
-        $dir = dirname($_SERVER['SCRIPT_NAME']).'/';
-        return str_replace($dir, '', $_SERVER['REQUEST_URI']);
+        $uri = trim($_SERVER['REQUEST_URI'], '/');
+        $dir = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $uri = trim(str_replace($dir, '', $uri), '/');
+
+        return $uri;
     }
 
     public function run() 
     {
         $uri    = $this->getUri();
         $method = strtolower($_SERVER['REQUEST_METHOD']);
+        $found  = false;
 
         foreach ($this->routes[$method] as $key => $ar) {
 
@@ -73,11 +85,17 @@ class Router
                 continue;
             }
 
+            $found = true;
+
             $params = isset($matches[1]) ? $matches[1] : array();
 
             $this->call($callback, $params);
 
             break;
+        }
+
+        if (! $found and $this->error404) {
+            $this->call($this->error404, [$uri]);
         }
     }
 
