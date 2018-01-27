@@ -13,9 +13,9 @@ $r = new Router();
 
 /*------*/
 
-$uri        = $r->getUri();
+$path       = $r->getPath();
 $url        = $r->getUrl();
-$baseHref   = rtrim(str_replace($uri, '', $url), '/').'/';
+$baseHref   = rtrim(str_replace($path, '', $url), '/').'/';
 require 'resources/header.php';
 
 /*------*/

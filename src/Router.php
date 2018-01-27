@@ -82,11 +82,12 @@ class Router
     }
 
     /**
-     * Returns everything after the domain
+     * Returns everything after the domain.
      * @return string
      */
-    public function getUri() 
+    public function getPath() 
     {
+        // trims off the script file's directory.
         $uri = trim($_SERVER['REQUEST_URI'], '/');
         $dir = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
         $uri = trim(str_replace($dir, '', $uri), '/');
@@ -110,7 +111,7 @@ class Router
      */
     public function run() 
     {
-        $uri    = $this->getUri();
+        $uri    = $this->getPath();
         $method = strtolower($_SERVER['REQUEST_METHOD']);
         $found  = false;
 
@@ -120,7 +121,8 @@ class Router
 
             foreach ((array) $patterns as $pattern) {        
                 if (preg_match($pattern, $uri, $matches)) {
-                    $found = true;        
+                    $found = true;
+                    break;        
                 }
             }
 

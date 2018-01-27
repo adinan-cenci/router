@@ -17,7 +17,7 @@
                     <li><a href="foo-bar/">Foo bar</a></li>
                     <li><a href="contact/">Contact</a></li>
                 </ul>
-                <div class="uri">URI: <?php echo $uri;?></div>
+                <div class="uri">PATH: <?php echo $path;?></div>
             </header>
             <main>
 
