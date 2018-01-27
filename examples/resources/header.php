@@ -13,6 +13,8 @@
                 <ul id="menu">
                     <li><a href="home/">Home</a></li>
                     <li><a href="about-us/">About Us</a></li>
+                    <li><a href="products/">Products</a></li>
+                    <li><a href="foo-bar/">Foo bar</a></li>
                     <li><a href="contact/">Contact</a></li>
                 </ul>
                 <div class="uri">URI: <?php echo $uri;?></div>

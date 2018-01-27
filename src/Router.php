@@ -14,18 +14,31 @@ class Router
 
     protected $error404;
 
+    public function __construct() 
+    {
+        // error 404 default function
+        $r = $this;
+        $this->error404 = function() use ($r) 
+        {
+            $r->header404();
+            echo 'Page not found';
+        };
+    }
+
     /**
-     * @param string $method Post, get, put etc.
-     * @param string $pattern Regex pattern
+     * Associates ane or more uri to a function/method and http method
+     *
+     * @param string $methods | separated http methods. Post, get, put etc.
+     * @param string|array $patterns Regex pattern(s)
      * @param callable $callback A function or the name of one
      */
-    public function add($method, $pattern, $callback) 
+    public function add($methods, $patterns, $callback) 
     {
-        $methods = explode('|', strtolower($method));
+        $methods = explode('|', strtolower($methods));
 
         foreach ($methods as $method) {
             $this->routes[$method][] = array(
-                $pattern, 
+                $patterns, 
                 $callback
             );
         }
@@ -52,6 +65,16 @@ class Router
         return $this;
     }
 
+    public function delete($pattern, $callback) 
+    {
+        $this->add('delete', $pattern, $callback);
+        return $this;
+    }
+
+    /**
+     * Sets a callback to handle error 404, that is
+     * when no route matches the request
+     */
     public function set404($callback) 
     {
         $this->error404 = $callback;
@@ -71,6 +94,20 @@ class Router
         return $uri;
     }
 
+    public function getUrl() 
+    {
+        return (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+    }
+
+    public function header404() 
+    {
+        header('HTTP/1.0 404 Not Found');
+    }
+
+    /**
+     * Test all of the specified patterns and stops 
+     * at the first match
+     */
     public function run() 
     {
         $uri    = $this->getUri();
@@ -79,13 +116,17 @@ class Router
 
         foreach ($this->routes[$method] as $key => $ar) {
 
-            list($pattern, $callback) = $ar;
-            
-            if (! preg_match($pattern, $uri, $matches)) {
-                continue;
+            list($patterns, $callback) = $ar;
+
+            foreach ((array) $patterns as $pattern) {        
+                if (preg_match($pattern, $uri, $matches)) {
+                    $found = true;        
+                }
             }
 
-            $found = true;
+            if (! $found) {
+                continue;
+            }            
 
             $params = isset($matches[1]) ? $matches[1] : array();
 
@@ -94,8 +135,15 @@ class Router
             break;
         }
 
-        if (! $found and $this->error404) {
-            $this->call($this->error404, [$uri]);
+        if (! $found) {
+            $this->notFound($uri);
+        }
+    }
+
+    protected function notFound($uri) 
+    {
+        if ($this->error404) {
+            $this->call($this->error404, array($uri));
         }
     }
 
@@ -105,6 +153,6 @@ class Router
             $callback = $this->defaultNamespace.$callback;
         }
 
-        call_user_func_array($callback, $params);
+        call_user_func_array($callback, (array) $params);
     }
 }
