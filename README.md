@@ -31,11 +31,11 @@ $r->get(['/^$/', '/home/'], function()
     'This is the contact form page';
 })
 
-->set404(function($uri) use($r) 
+->set404(function($path) use($r) 
 {
     $r->header404();
     echo 
-    'Error 404, nothing found';
+    'Error 404, nothing found related to '.$path;
 });
 ```
 

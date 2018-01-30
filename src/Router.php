@@ -26,7 +26,7 @@ class Router
     }
 
     /**
-     * Associates ane or more uri to a function/method and http method
+     * Associates ane or more path to a function/method and http method
      *
      * @param string $methods | separated http methods. Post, get, put etc.
      * @param string|array $patterns Regex pattern(s)
@@ -81,23 +81,46 @@ class Router
         return $this;
     }
 
+    // gets the request_uri without the query string
+    protected function getRequestPath() 
+    {
+        return preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
+    }
+
+    // return the requested url, scheme://domain/path/
+    public function getUrl() 
+    {
+        return (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'].$this->getRequestPath();
+    }
+
+    // return the full requested uri, scheme://domain/path/?query
+    public function getUri() 
+    {
+        return (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+    }
+
+    // returns the (relative) path to the directory of the current executing script file
+    protected function scriptDirectory() 
+    {
+        return trim(dirname($this->forwardSlash($_SERVER['SCRIPT_NAME'])), '/');
+    }
+
     /**
-     * Returns everything after the domain.
+     * Returns everything after the host.
      * @return string
      */
     public function getPath() 
     {
         // trims off the script file's directory.
-        $uri = trim($_SERVER['REQUEST_URI'], '/');
-        $dir = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
-        $uri = trim(str_replace($dir, '', $uri), '/');
-
-        return $uri;
+        $removeDir  = $this->scriptDirectory();
+        $fromPath   = $this->getRequestPath();
+        return trim(str_replace($removeDir, '', $fromPath), '/');
     }
 
-    public function getUrl() 
+    public function getBaseHref() 
     {
-        return (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+        $url = $this->getUrl();
+        return rtrim(str_replace($this->getPath(), '', $url), '/').'/';
     }
 
     public function header404() 
@@ -111,7 +134,7 @@ class Router
      */
     public function run() 
     {
-        $uri    = $this->getPath();
+        $path   = $this->getPath();
         $method = strtolower($_SERVER['REQUEST_METHOD']);
         $found  = false;
 
@@ -120,7 +143,7 @@ class Router
             list($patterns, $callback) = $ar;
 
             foreach ((array) $patterns as $pattern) {        
-                if (preg_match($pattern, $uri, $matches)) {
+                if (preg_match($pattern, $path, $matches)) {
                     $found = true;
                     break;        
                 }
@@ -138,14 +161,14 @@ class Router
         }
 
         if (! $found) {
-            $this->notFound($uri);
+            $this->notFound($path);
         }
     }
 
-    protected function notFound($uri) 
+    protected function notFound($path) 
     {
         if ($this->error404) {
-            $this->call($this->error404, array($uri));
+            $this->call($this->error404, array($path));
         }
     }
 
@@ -156,5 +179,10 @@ class Router
         }
 
         call_user_func_array($callback, (array) $params);
+    }
+
+    protected function forwardSlash($string) 
+    {
+        return str_replace('\\', '/', $string);
     }
 }

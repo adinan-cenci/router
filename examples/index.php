@@ -14,8 +14,7 @@ $r = new Router();
 /*------*/
 
 $path       = $r->getPath();
-$url        = $r->getUrl();
-$baseHref   = rtrim(str_replace($path, '', $url), '/').'/';
+$baseHref   = $r->getBaseHref();
 require 'resources/header.php';
 
 /*------*/
@@ -95,12 +94,12 @@ $r->get(['/^$/', '/home/'], function()
     ';
 })
 
-->set404(function($uri) use($r) 
+->set404(function($path) use($r) 
 {
     $r->header404();
     echo 
     '<h1>Error 404</h1>
-    <p>Nothing found related to "'.$uri.'"</p>';
+    <p>Nothing found related to "'.$path.'"</p>';
 });
 
 /*------*/
