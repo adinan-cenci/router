@@ -19,6 +19,39 @@ require 'resources/header.php';
 
 /*------*/
 
+class Controller 
+{
+    public function method() 
+    {
+        echo 
+        '<h1>Public method</h1>', 
+        '<p>This is a public method of an instantiated object!</p>';
+    }
+
+    protected function protectedMethod() 
+    {
+        echo 
+        '<h1>Protected method</h1>', 
+        '<p>You can\'t access this, this is a private method</p>';
+    }
+
+    public static function staticMethod() 
+    {
+        echo 
+        '<h1>Static method</h1>', 
+        '<p>This is a public static method!</p>';
+    }
+}
+
+function myFunction() 
+{
+    echo 
+    '<h1>Function</h1>', 
+    '<p>This is a function</p>';
+}
+
+/*------*/
+
 // you may set more than one pattern as to create aliases
 $r->get(['/^$/', '/home/'], function() 
 {
@@ -94,6 +127,11 @@ $r->get(['/^$/', '/home/'], function()
     ';
 })
 
+->get('#class/method#', 'Controller::method')
+->get('#class/protected-method#', 'Controller::protectedMethod')
+->get('#class/static-method#', 'Controller::staticMethod')
+->get('#function#', 'myFunction')
+
 ->set404(function($path) use($r) 
 {
     $r->header404();
@@ -104,7 +142,13 @@ $r->get(['/^$/', '/home/'], function()
 
 /*------*/
 
-$r->run();
+try {
+    $r->run();
+} catch (Exception $e) {
+    echo 
+    '<h1>Error!</h1>',
+    '<p>'.$e->getMessage().'</p>';
+}
 
 /*------*/
 

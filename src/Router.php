@@ -172,13 +172,60 @@ class Router
         }
     }
 
+
     protected function call($callback, $params) 
     {
-        if (is_string($callback)) {
-            $callback = $this->defaultNamespace.$callback;
+        $params = (array) $params;
+
+        if (! is_string($callback)) {
+            call_user_func_array($callback, $params);
+            return;
         }
 
-        call_user_func_array($callback, (array) $params);
+        /*----*/    
+
+        $callback = $this->defaultNamespace.$callback;
+
+        /*----*/
+
+        if (!substr_count($callback, '::') and !function_exists($callback)) {
+            throw new \Exception('function '.$callback.' is not defined', 1);            
+        }
+
+        if (! substr_count($callback, '::')) {
+            call_user_func_array($callback, $params);
+            return;
+        }
+
+        /*----*/
+
+        list($controller, $method) = explode('::', $callback);
+
+        if (! class_exists($controller)) {
+            throw new \Exception('Class '.$controller.' not found', 1);            
+        }
+
+        /*----*/
+
+        $reflMethod = new \ReflectionMethod($controller, $method);
+        
+        if ($reflMethod->isStatic() and $reflMethod->isPublic()) {
+            call_user_func_array($callback, $params);
+            return;
+        }
+
+        /*----*/
+
+        $reflClass = new \ReflectionClass($controller);
+
+        /*----*/
+
+        if ($reflClass->IsInstantiable() and $reflMethod->isPublic() and !$reflMethod->isStatic()) {
+            call_user_func_array([new $controller, $method], $params);
+            return;
+        }
+
+        throw new \Exception('Incapable of accessing '.$callback, 1);        
     }
 
     protected function forwardSlash($string) 
