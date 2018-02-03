@@ -1,4 +1,39 @@
-<!DOCTYPE html>
+<?php
+
+namespace Example;
+
+class Controller 
+{
+    public function publicMethod() 
+    {
+        echo 
+        '<h1>Public method</h1>', 
+        '<p>This is a public method of an instantiated object!</p>';
+    }
+
+    protected function protectedMethod() 
+    {
+        echo 
+        '<h1>Protected method</h1>', 
+        '<p>You can\'t access this, this is a private method</p>';
+    }
+
+    public static function staticMethod() 
+    {
+        echo 
+        '<h1>Static method</h1>', 
+        '<p>This is a public static method!</p>';
+    }
+}
+
+function myFunction() 
+{
+    echo 
+    '<h1>Function</h1>', 
+    '<p>This is a function</p>';
+}
+
+?><!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">

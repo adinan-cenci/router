@@ -25,6 +25,12 @@ class Router
         };
     }
 
+    public function namespace($namespace) 
+    {
+        $this->defaultNamespace = $namespace;
+        return $this;
+    }
+
     /**
      * Associates ane or more path to a function/method and http method
      *
@@ -172,7 +178,6 @@ class Router
         }
     }
 
-
     protected function call($callback, $params) 
     {
         $params = (array) $params;
@@ -184,7 +189,7 @@ class Router
 
         /*----*/    
 
-        $callback = $this->defaultNamespace.$callback;
+        $callback = substr($callback, 0, 1) != '\\' ? $this->defaultNamespace.$callback : $callback;
 
         /*----*/
 
@@ -217,8 +222,6 @@ class Router
         /*----*/
 
         $reflClass = new \ReflectionClass($controller);
-
-        /*----*/
 
         if ($reflClass->IsInstantiable() and $reflMethod->isPublic() and !$reflMethod->isStatic()) {
             call_user_func_array([new $controller, $method], $params);
