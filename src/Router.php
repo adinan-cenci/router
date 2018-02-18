@@ -129,9 +129,9 @@ class Router
         return rtrim(str_replace($this->getPath(), '', $url), '/').'/';
     }
 
-    public function header404() 
+    public function header404($replace = true, $responseCode = 404) 
     {
-        header('HTTP/1.0 404 Not Found');
+        header('HTTP/1.0 404 Not Found', $replace, $responseCode);
     }
 
     /**
@@ -171,14 +171,7 @@ class Router
         }
     }
 
-    protected function notFound($path) 
-    {
-        if ($this->error404) {
-            $this->call($this->error404, array($path));
-        }
-    }
-
-    protected function call($callback, $params) 
+    public function call($callback, $params) 
     {
         $params = (array) $params;
 
@@ -229,6 +222,13 @@ class Router
         }
 
         throw new \Exception('Incapable of accessing '.$callback, 1);        
+    }
+
+    protected function notFound($path) 
+    {
+        if ($this->error404) {
+            $this->call($this->error404, array($path));
+        }
     }
 
     protected function forwardSlash($string) 
