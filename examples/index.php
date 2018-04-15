@@ -2,36 +2,49 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-/*------*/
+//----------------
 
 require '../src/Router.php';
+require 'callbacks.php';
 use \AdinanCenci\Router\Router;
 
 $r = new Router();
 
-/*------*/
+//----------------
 
+$content    = '';
 $path       = $r->getPath();
 $baseHref   = $r->getBaseHref();
-$r->namespace('\Example\\');
-require 'resources/header.php';
+$r->setNamespace('\Example\\');
 
-/*------*/
+//----------------
 
 // you may set more than one pattern as to create aliases
-$r->get(['/^$/', '/home$/'], function() 
+$r->get(['/^$/', '/home$/'], function() use ($r)
 {
-    echo 
+
+    if (! isset($_GET['foo'])) {
+        header('Location: '.$r->getBaseHref().'home/?foo=bar');
+        return;
+    }
+
+    $GLOBALS['content'] .= 
     '<h1>Home page</h1>
     <p>Welcome! This is a example of how the Router works.</p>
-    <p>Just type something in the address bar, it shall be matched with the specified routes.
-    If no match is found, it will trigger a 404 error.</p>
-    ';
+    <p>Just type something in the address bar, it shall be matched with the specified routes.<br> 
+    If no match is found, it will trigger a 404 error.</p>';
+
+    $GLOBALS['content'] .= 
+    '<table>
+        <tr><th>URL:</th><td>'.$r->getUrl().'</td></tr>
+        <tr><th>BASE HREF:</th><td>'.$r->getBaseHref().'</td></tr>
+        <tr><th>PATH:</th><td>'.$r->getPath().'</td></tr>
+    </table>';
 })
 
 ->get('/about-us$/', function() 
 {
-    echo 
+    $GLOBALS['content'] .= 
     '<h1>About us</h1>
     <p>
         Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
@@ -46,7 +59,7 @@ $r->get(['/^$/', '/home$/'], function()
 
 ->get('/products/', function() 
 {
-    echo 
+    $GLOBALS['content'] .= 
     '<h1>Products</h1>
     <ul>
         <li><a href="product/1">Wireless Mouse</a></li>
@@ -57,20 +70,21 @@ $r->get(['/^$/', '/home$/'], function()
 
 ->get('#product/(\d+)$#', function($id) 
 {
-    echo 
-    '<h1>'.$id.'</h1>';
+    $GLOBALS['content'] .= 
+    '<h1>ID: '.$id.'</h1>
+    <a href="products">< go back</a>';
 })
 
 ->add('get|post', '/contact$/', function() 
 {
-    echo 
+    $GLOBALS['content'] .= 
     '<h1>Contact page</h1>';
 
     if (! empty($_POST['name'])) {
         echo '<p class="success">Message sent!</p>';
     }
 
-    echo 
+    $GLOBALS['content'] .= 
     '<form method="post">
         <label>
             Name:
@@ -94,28 +108,37 @@ $r->get(['/^$/', '/home$/'], function()
 })
 
 ->get('#class/method#', 'Controller::publicMethod')
+
 ->get('#class/protected-method#', 'Controller::protectedMethod')
+
 ->get('#class/static-method#', 'Controller::staticMethod')
+
 ->get('#function#', 'myFunction')
 
-->set404(function($path) use($r) 
+->set404(function($path) 
 {
-    $r->header404();
-    echo 
+    Router::header404();
+    
+    $GLOBALS['content'] .= 
     '<h1>Error 404</h1>
     <p>Nothing found related to "'.$path.'"</p>';
 });
 
-/*------*/
+//----------------
 
 try {
     $r->run();
 } catch (Exception $e) {
-    echo 
-    '<h1>Error!</h1>',
-    '<p>'.$e->getMessage().'</p>';
+    $GLOBALS['content'] .=  
+    '<h1>EXCEPTION ERROR!</h1>
+    <p>'.$e->getMessage().'</p>';
 }
 
-/*------*/
+//----------------
+
+require 'resources/header.php';
+
+echo 
+$content;
 
 require 'resources/footer.html';

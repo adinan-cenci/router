@@ -1,39 +1,4 @@
-<?php
-
-namespace Example;
-
-class Controller 
-{
-    public function publicMethod() 
-    {
-        echo 
-        '<h1>Public method</h1>', 
-        '<p>This is a public method of an instantiated object!</p>';
-    }
-
-    protected function protectedMethod() 
-    {
-        echo 
-        '<h1>Protected method</h1>', 
-        '<p>You can\'t access this, this is a private method</p>';
-    }
-
-    public static function staticMethod() 
-    {
-        echo 
-        '<h1>Static method</h1>', 
-        '<p>This is a public static method!</p>';
-    }
-}
-
-function myFunction() 
-{
-    echo 
-    '<h1>Function</h1>', 
-    '<p>This is a function</p>';
-}
-
-?><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -56,7 +21,7 @@ function myFunction()
                     <li><a href="class/protected-method">Protected method</a></li>
                     <li><a href="function">Function</a></li>
                 </ul>
-                <div class="uri">PATH: <?php echo $path;?></div>
+                <div id="path">PATH: <?php echo $path;?></div>
             </header>
             <main>
 

@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * In order to resolve the path, this class will take in account 
+ * the parent directory of the SCRIPT_NAME in relation to DOCUMENT_ROOT
+ */
+
 namespace AdinanCenci\Router;
 
 class Router 
@@ -18,14 +24,14 @@ class Router
     {
         // error 404 default function
         $r = $this;
-        $this->error404 = function() use ($r) 
+        $this->error404 = function() 
         {
-            $r->header404();
+            self::header404();
             echo 'Page not found';
         };
     }
 
-    public function namespace($namespace) 
+    public function setNamespace($namespace) 
     {
         $this->defaultNamespace = $namespace;
         return $this;
@@ -87,51 +93,35 @@ class Router
         return $this;
     }
 
-    // gets the request_uri without the query string
-    protected function getRequestPath() 
+    public function getUrl($queryString = true) 
     {
-        return preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
-    }
-
-    // return the requested url, scheme://domain/path/
-    public function getUrl() 
-    {
-        return (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'].$this->getRequestPath();
-    }
-
-    // return the full requested uri, scheme://domain/path/?query
-    public function getUri() 
-    {
-        return (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-    }
-
-    // returns the (relative) path to the directory of the current executing script file
-    protected function scriptDirectory() 
-    {
-        return trim(dirname($this->forwardSlash($_SERVER['SCRIPT_NAME'])), '/');
+        $url = (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'];
+        
+        if ($queryString) {
+            $url .= $_SERVER['REQUEST_URI'];
+        } else {
+            $url .= $this->getRequestUri();
+        }
+        
+        return $url;
     }
 
     /**
-     * Returns everything after the host.
+     * Returns the path part of the url. That is, in relation to 
+     * the SCRIPT_NAME's directory
      * @return string
      */
     public function getPath() 
     {
-        // trims off the script file's directory.
-        $removeDir  = $this->scriptDirectory();
-        $fromPath   = $this->getRequestPath();
-        return trim(str_replace($removeDir, '', $fromPath), '/');
+        // trims off the script file's directory
+        $removeDir      = $this->scriptParentDirectory();
+        $fromRequestUri = $this->getRequestUri();
+        return trim(str_replace($removeDir, '', $fromRequestUri), '/');
     }
 
     public function getBaseHref() 
     {
-        $url = $this->getUrl();
-        return rtrim(str_replace($this->getPath(), '', $url), '/').'/';
-    }
-
-    public function header404($replace = true, $responseCode = 404) 
-    {
-        header('HTTP/1.0 404 Not Found', $replace, $responseCode);
+        return rtrim(str_replace($this->getPath(), '', $this->getUrl(false)), '/').'/';
     }
 
     /**
@@ -231,8 +221,32 @@ class Router
         }
     }
 
+    /** 
+     * gets the REQUEST_URI without the query string
+     * @assert 'http://mywebsite.com.br/about/?who=us' == about
+    */
+    protected function getRequestUri() 
+    {
+        return preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
+    }
+
+    /** 
+     * Returns the relative path to the directory 
+     * of the executing script ( in relation to DOCUMENT_ROOT )
+     * @return string
+     */
+    protected function scriptParentDirectory() 
+    {
+        return trim(dirname($this->forwardSlash($_SERVER['SCRIPT_NAME'])), '/');
+    }
+
     protected function forwardSlash($string) 
     {
         return str_replace('\\', '/', $string);
+    }
+
+    public static function header404($replace = true, $responseCode = 404) 
+    {
+        header('HTTP/1.0 404 Not Found', $replace, $responseCode);
     }
 }

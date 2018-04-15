@@ -13,27 +13,27 @@ $r = new Router();
 
 Set the routes with regex patterns.
 ```php
-$r->get(['/^$/', '/home/'], function() 
+$r->get(['#^$#', '#home/?$#'], function() 
 {
     echo 
     'This is the home page.';
 })
 
-->get('/about-us$/', function() 
+->get('#about-us/?$#', function() 
 {
     echo 
     'This is the institutional page';
 })
 
-->add('get|post', '/contact$/', function() 
+->add('get|post', '#contact/?$#', function() 
 {
     echo 
     'This is the contact form page';
 })
 
-->set404(function($path) use($r) 
+->set404(function($path) 
 {
-    $r->header404();
+    Router::header404();
     echo 
     'Error 404, nothing found related to '.$path;
 });
