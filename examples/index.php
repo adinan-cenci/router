@@ -4,18 +4,17 @@ ini_set('display_errors', 1);
 
 //----------------
 
-require '../src/Router.php';
-require 'callbacks.php';
+require '../vendor/autoload.php';
+require './callbacks.php';
 use \AdinanCenci\Router\Router;
-
-$r = new Router();
 
 //----------------
 
+$r          = new Router();
+$r->namespace('\Example\\');
 $content    = '';
-$path       = $r->getPath();
-$baseHref   = $r->getBaseHref();
-$r->setNamespace('\Example\\');
+$route      = $r->request->route;
+$baseHref   = $r->request->baseHref;
 
 //----------------
 
@@ -24,7 +23,7 @@ $r->get(['/^$/', '/home$/'], function() use ($r)
 {
 
     if (! isset($_GET['foo'])) {
-        header('Location: '.$r->getBaseHref().'home/?foo=bar');
+        header('Location: '.$r->request->baseHref.'home/?foo=bar');
         return;
     }
 
@@ -36,9 +35,10 @@ $r->get(['/^$/', '/home$/'], function() use ($r)
 
     $GLOBALS['content'] .= 
     '<table>
-        <tr><th>URL:</th><td>'.$r->getUrl().'</td></tr>
-        <tr><th>BASE HREF:</th><td>'.$r->getBaseHref().'</td></tr>
-        <tr><th>PATH:</th><td>'.$r->getPath().'</td></tr>
+        <tr><th>URL:</th><td>'.$r->request->url.'</td></tr>
+        <tr><th>BASE HREF:</th><td>'.$r->request->baseHref.'</td></tr>
+        <tr><th>PATH:</th><td>'.$r->request->path.'</td></tr>    
+        <tr><th>ROUTE:</th><td>'.$r->request->route.'</td></tr>    
     </table>';
 })
 

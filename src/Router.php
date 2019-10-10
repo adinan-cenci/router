@@ -10,7 +10,7 @@ namespace AdinanCenci\Router;
 class Router 
 {
     protected $defaultNamespace = '';
-
+    protected $request = null;
     protected $routes = array(
         'get'       => array(), 
         'post'      => array(), 
@@ -29,9 +29,20 @@ class Router
             self::header404();
             echo 'Page not found';
         };
+
+        $this->request = new Request();
     }
 
-    public function setNamespace($namespace) 
+    public function __get($var) 
+    {
+        if ($var == 'request') {
+            return $this->request;
+        }
+
+        return null;
+    }
+
+    public function namespace($namespace) 
     {
         $this->defaultNamespace = $namespace;
         return $this;
@@ -44,8 +55,9 @@ class Router
      * @param string|array $patterns Regex pattern(s)
      * @param callable $callback A function or the name of one
      */
-    public function add($methods, $patterns, $callback) 
+    public function add($methods = '*', $patterns, $callback) 
     {
+        $methods = $methods == '*' ? 'get|post|put|delete' : $methods;
         $methods = explode('|', strtolower($methods));
 
         foreach ($methods as $method) {
@@ -59,27 +71,27 @@ class Router
     }
 
     /** Shortcuts for ::add */
-    public function get($pattern, $callback) 
+    public function get($patterns, $callback) 
     {
-        $this->add('get', $pattern, $callback);
+        $this->add('get', $patterns, $callback);
         return $this;
     }
 
-    public function post($pattern, $callback) 
+    public function post($patterns, $callback) 
     {
-        $this->add('post', $pattern, $callback);
+        $this->add('post', $patterns, $callback);
         return $this;
     }
 
-    public function put($pattern, $callback) 
+    public function put($patterns, $callback) 
     {
-        $this->add('put', $pattern, $callback);
+        $this->add('put', $patterns, $callback);
         return $this;
     }
 
-    public function delete($pattern, $callback) 
+    public function delete($patterns, $callback) 
     {
-        $this->add('delete', $pattern, $callback);
+        $this->add('delete', $patterns, $callback);
         return $this;
     }
 
@@ -93,44 +105,13 @@ class Router
         return $this;
     }
 
-    public function getUrl($queryString = true) 
-    {
-        $url = (isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http' ).'://'.$_SERVER['HTTP_HOST'];
-        
-        if ($queryString) {
-            $url .= $_SERVER['REQUEST_URI'];
-        } else {
-            $url .= $this->getRequestUri();
-        }
-        
-        return $url;
-    }
-
-    /**
-     * Returns the path part of the url. That is, in relation to 
-     * the SCRIPT_NAME's directory
-     * @return string
-     */
-    public function getPath() 
-    {
-        // trims off the script file's directory
-        $removeDir      = $this->scriptParentDirectory();
-        $fromRequestUri = $this->getRequestUri();
-        return trim(str_replace($removeDir, '', $fromRequestUri), '/');
-    }
-
-    public function getBaseHref() 
-    {
-        return rtrim(str_replace($this->getPath(), '', $this->getUrl(false)), '/').'/';
-    }
-
     /**
      * Test all of the specified patterns and stops 
      * at the first match
      */
     public function run() 
     {
-        $path   = $this->getPath();
+        $route  = $this->request->route;
         $method = strtolower($_SERVER['REQUEST_METHOD']);
         $found  = false;
 
@@ -139,7 +120,7 @@ class Router
             list($patterns, $callback) = $ar;
 
             foreach ((array) $patterns as $pattern) {        
-                if (preg_match($pattern, $path, $matches)) {
+                if (preg_match($pattern, $route, $matches)) {
                     $found = true;
                     break;        
                 }
@@ -157,11 +138,11 @@ class Router
         }
 
         if (! $found) {
-            $this->notFound($path);
+            $this->notFound($route);
         }
     }
 
-    public function call($callback, $params) 
+    protected function call($callback, $params) 
     {
         $params = (array) $params;
 
@@ -219,30 +200,6 @@ class Router
         if ($this->error404) {
             $this->call($this->error404, array($path));
         }
-    }
-
-    /** 
-     * gets the REQUEST_URI without the query string
-     * @assert 'http://mywebsite.com.br/about/?who=us' == about
-    */
-    protected function getRequestUri() 
-    {
-        return preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
-    }
-
-    /** 
-     * Returns the relative path to the directory 
-     * of the executing script ( in relation to DOCUMENT_ROOT )
-     * @return string
-     */
-    protected function scriptParentDirectory() 
-    {
-        return trim(dirname($this->forwardSlash($_SERVER['SCRIPT_NAME'])), '/');
-    }
-
-    protected function forwardSlash($string) 
-    {
-        return str_replace('\\', '/', $string);
     }
 
     public static function header404($replace = true, $responseCode = 404) 

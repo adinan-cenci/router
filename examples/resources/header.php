@@ -21,7 +21,7 @@
                     <li><a href="class/protected-method">Protected method</a></li>
                     <li><a href="function">Function</a></li>
                 </ul>
-                <div id="path">PATH: <?php echo $path;?></div>
+                <div id="route">ROUTE: <?php echo $route;?></div>
             </header>
             <main>
 

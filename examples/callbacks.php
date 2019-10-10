@@ -14,7 +14,7 @@ class Controller
     {
         $GLOBALS['content'] .= 
         '<h1>Protected method</h1>
-        <p>You can\'t access this, this is a private method</p>';
+        <p>You can\'t access this, this is a protected method</p>';
     }
 
     public static function staticMethod() 

@@ -5,7 +5,7 @@
 body {
     padding: 1px 0px 0px 0px;
     margin: auto;
-    font-family: 'Roboto';
+    font-family: 'Roboto', 'Arial';
     font-size: 16px;
     line-height: 1.3em;
     color: #888;
@@ -93,7 +93,7 @@ table th {
                 text-decoration: underline;
             }
 
-        header #path {
+        header #route {
             padding: 5px 20px;
             color: #666;
             font-size: 14px;
