@@ -31,7 +31,7 @@ class Request
 
         $overriden = strtolower($headers['x-http-method-override']);
 
-        if (in_array($overriden, ['put', 'delete', 'patch'])) {
+        if (in_array($overriden, array('put', 'delete', 'patch'))) {
             $method = $overriden;
         }
 

@@ -257,7 +257,7 @@ class Router
         $reflClass = new \ReflectionClass($controller);
 
         if ($reflClass->IsInstantiable() and $reflMethod->isPublic() and !$reflMethod->isStatic()) {
-            call_user_func_array([new $controller, $method], $params);
+            call_user_func_array(array(new $controller, $method), $params);
             return;
         }
 
@@ -273,13 +273,13 @@ class Router
 
     protected function sortAddParams($params) 
     {
-        $methods    = 'get|post|put|delete|options|patch';
+        $methods    = 'get|post|put|delete|options|patch|head';
         $patterns   = null;
         $callback   = null;
         $x          = 0;
 
         if ($params[0] == '*') {
-            $methods = 'get|post|put|delete|options|patch';
+            $methods = 'get|post|put|delete|options|patch|head';
             $x++;
         } else if (is_string($params[0]) && explode('|', $params[0])) {
             $methods = $params[0];
