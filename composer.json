@@ -1,6 +1,6 @@
 {
     "name": "adinan-cenci/router", 
-    "description": "Yet another php routing library.", 
+    "description": "A small PHP router library.", 
     "type": "library", 
     "keywords": ["router"], 
     "license": "MIT",
