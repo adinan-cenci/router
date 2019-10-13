@@ -12,7 +12,7 @@ $r = new Router();
 
 //-------------------------------------------------------------
 
-// Defining the routes
+// Define the routes
 
 $r->get(['#^$#', '#home/?$#'], function() // an anonymous functions
 {
@@ -64,7 +64,7 @@ See the contents of the "examples" directory for more details.
 
 Defines a route and the respective callback. Note that only the callback of the first matching route will be executed.
 
-- $methods: A string representing the http methods ( get, post, put and delete ) separated with \| or a single '*' for all seven. This parameter is also optional.
+- $methods: A string representing the http methods ( GET, POST, PUT, DELETE, OPTIONS and PATCH ) separated with \| or a single '*' for all of them. This parameter is also optional.
 - $pattern: Regex or array of regex patterns to be tested against the requested URL.
 - $callback: An anonymous function, the name of a function or the method of a class. The router will attempt to instantiate classes in order to call non-static methods. Capture groups in the regex patterns will be passed as parameters to the callback.
 

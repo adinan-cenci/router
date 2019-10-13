@@ -154,10 +154,6 @@ class Router
         return $this;
     }
 
-    /**
-     * Test all of the specified patterns and stops 
-     * at the first match
-     */
     public function run() 
     {
         $route  = $this->request->route;
@@ -277,13 +273,13 @@ class Router
 
     protected function sortAddParams($params) 
     {
-        $methods    = 'get|post|put|delete|options|patch|head';
+        $methods    = 'get|post|put|delete|options|patch';
         $patterns   = null;
         $callback   = null;
         $x          = 0;
 
         if ($params[0] == '*') {
-            $methods = 'get|post|put|delete|options|patch|head';
+            $methods = 'get|post|put|delete|options|patch';
             $x++;
         } else if (is_string($params[0]) && explode('|', $params[0])) {
             $methods = $params[0];
