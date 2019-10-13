@@ -71,19 +71,19 @@ Defines a route and the respective callback. Note that only the callback of the 
 ```php
 $r->add('#home$#', function() 
 {
-	echo 'This callback will be executed 
+    echo 'This callback will be executed 
     on all http requests on routes ending with "home".';
 });
 
 $r->add('get|post', '#about$#', function() 
 {
-	echo 'This callback will be executed 
+    echo 'This callback will be executed 
     only on get/post request on routes ending with "about".';
 });
 
 $r->add('get|post', ['#user/(\w+)$#', '#u/(\w+)$#'], function($handle) 
 {
-	echo 'This callback will be executed 
+    echo 'This callback will be executed 
     only on get/post request on routes ending with "user/'.$handle.'" or "u/'.$handle.'"' ;
 });
 ```
@@ -118,7 +118,7 @@ Defines a middle-ware and the respective callback. The middle-wares will be matc
 $r->before('*', 'restricted-area', function() 
 {
     if (! userIsLogged()) {
-		header('location: login'); 
+        header('location: login'); 
     }
 });
 ```
