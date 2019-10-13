@@ -1,16 +1,20 @@
 <?php
 
-/**
- * In order to resolve the path, this class will take in account 
- * the parent directory of the SCRIPT_NAME in relation to DOCUMENT_ROOT
- */
-
 namespace AdinanCenci\Router;
 
 class Router 
 {
     protected $defaultNamespace = '';
+
     protected $request = null;
+
+    protected $before = array(
+        'get'       => array(), 
+        'post'      => array(), 
+        'put'       => array(), 
+        'delete'    => array()
+    );
+
     protected $routes = array(
         'get'       => array(), 
         'post'      => array(), 
@@ -19,6 +23,8 @@ class Router
     );
 
     protected $error404;
+
+    protected $headRequest = false;
 
     public function __construct() 
     {
@@ -31,6 +37,13 @@ class Router
         };
 
         $this->request = new Request();
+    }
+
+    public function __destruct() 
+    {
+        if ($this->headRequest) {
+            ob_end_clean();
+        }
     }
 
     public function __get($var) 
@@ -49,15 +62,39 @@ class Router
     }
 
     /**
-     * Associates ane or more path to a function/method and http method
+     * Associates middleware(s) to a function/method and http method(s)
      *
-     * @param string $methods | separated http methods. Post, get, put etc.
+     * @param string $methods | separated http methods. Post, get, put etc. Optional.
      * @param string|array $patterns Regex pattern(s)
      * @param callable $callback A function or the name of one
      */
-    public function add($methods = '*', $patterns, $callback) 
+    public function before($methods = '*', $patterns = '', $callback = '') 
     {
-        $methods = $methods == '*' ? 'get|post|put|delete' : $methods;
+        list($methods, $patterns, $callback) = $this->sortAddParams(func_get_args());
+
+        $methods = explode('|', strtolower($methods));
+
+        foreach ($methods as $method) {
+            $this->before[$method][] = array(
+                $patterns, 
+                $callback
+            );
+        }
+
+        return $this;
+    }
+
+    /**
+     * Associates route(s) to a function/method and http method(s)
+     *
+     * @param string $methods | separated http methods. Post, get, put etc. Optional.
+     * @param string|array $patterns Regex pattern(s)
+     * @param callable $callback A function or the name of one
+     */
+    public function add($methods = '*', $patterns = '', $callback = '') 
+    {
+        list($methods, $patterns, $callback) = $this->sortAddParams(func_get_args());
+        
         $methods = explode('|', strtolower($methods));
 
         foreach ($methods as $method) {
@@ -95,6 +132,18 @@ class Router
         return $this;
     }
 
+    public function options($patterns, $callback) 
+    {
+        $this->add('options', $patterns, $callback);
+        return $this;
+    }
+
+    public function patch($patterns, $callback) 
+    {
+        $this->add('patch', $patterns, $callback);
+        return $this;
+    }
+
     /**
      * Sets a callback to handle error 404, that is
      * when no route matches the request
@@ -112,8 +161,32 @@ class Router
     public function run() 
     {
         $route  = $this->request->route;
-        $method = strtolower($_SERVER['REQUEST_METHOD']);
+        $method = $this->request->method;
         $found  = false;
+
+        if ($method == 'head') {
+            $this->headRequest = true;
+            $method = 'get';
+            ob_start();
+        }
+
+        //------------
+
+        foreach ($this->before[$method] as $key => $ar) {
+
+            list($patterns, $callback) = $ar;
+
+            foreach ((array) $patterns as $pattern) {        
+                if (preg_match($pattern, $route, $matches)) {
+                    
+                    $params = isset($matches[1]) ? $matches[1] : array();
+                    $this->call($callback, $params);
+
+                }
+            }
+        }
+
+        //------------ 
 
         foreach ($this->routes[$method] as $key => $ar) {
 
@@ -200,6 +273,31 @@ class Router
         if ($this->error404) {
             $this->call($this->error404, array($path));
         }
+    }
+
+    protected function sortAddParams($params) 
+    {
+        $methods    = 'get|post|put|delete|options|patch|head';
+        $patterns   = null;
+        $callback   = null;
+        $x          = 0;
+
+        if ($params[0] == '*') {
+            $methods = 'get|post|put|delete|options|patch|head';
+            $x++;
+        } else if (is_string($params[0]) && explode('|', $params[0])) {
+            $methods = $params[0];
+            $x++;
+        }
+
+        $patterns = $params[$x];
+        $callback = $params[$x + 1];
+
+        return array(
+            $methods, 
+            $patterns, 
+            $callback
+        );
     }
 
     public static function header404($replace = true, $responseCode = 404) 

@@ -18,23 +18,27 @@ $baseHref   = $r->request->baseHref;
 
 //----------------
 
-// you may set more than one pattern as to create aliases
-$r->get(['/^$/', '/home$/'], function() use ($r)
+// before middleware
+$r->before('get', ['/^$/', '/home$/'], function() use ($r) 
 {
-
     if (! isset($_GET['foo'])) {
         header('Location: '.$r->request->baseHref.'home/?foo=bar');
-        return;
+        die();
     }
+});
 
+//----------------
+
+// you may set more than one pattern as to create aliases
+$r->add(['/^$/', '/home$/'], function() use ($r)
+{
     $GLOBALS['content'] .= 
     '<h1>Home page</h1>
     <p>Welcome! This is a example of how the Router works.</p>
     <p>Just type something in the address bar, it shall be matched with the specified routes.<br> 
-    If no match is found, it will trigger a 404 error.</p>';
+    If no match is found, it will trigger a 404 error.</p>
 
-    $GLOBALS['content'] .= 
-    '<table>
+    <table>
         <tr><th>URL:</th><td>'.$r->request->url.'</td></tr>
         <tr><th>BASE HREF:</th><td>'.$r->request->baseHref.'</td></tr>
         <tr><th>PATH:</th><td>'.$r->request->path.'</td></tr>    
@@ -75,17 +79,13 @@ $r->get(['/^$/', '/home$/'], function() use ($r)
     <a href="products">< go back</a>';
 })
 
-->add('get|post', '/contact$/', function() 
+// Contact form
+->get('#contact/?$#', function() 
 {
     $GLOBALS['content'] .= 
-    '<h1>Contact page</h1>';
+    '<h1>Contact page</h1>
 
-    if (! empty($_POST['name'])) {
-        echo '<p class="success">Message sent!</p>';
-    }
-
-    $GLOBALS['content'] .= 
-    '<form method="post">
+    <form method="post">
         <label>
             Name:
             <input type="text" name="name"/>
@@ -106,12 +106,19 @@ $r->get(['/^$/', '/home$/'], function() use ($r)
     </form>
     ';
 })
+->post('#contact/?$#', function() 
+{
+    $GLOBALS['content'] .= 
+    '<h1>Contact page</h1>
+    <p class="success">Message sent!</p>';
+
+})
 
 ->get('#class/method#', 'Controller::publicMethod')
 
 ->get('#class/protected-method#', 'Controller::protectedMethod')
 
-->get('#class/static-method#', 'Controller::staticMethod')
+->get('#class/static-method$#', 'Controller::staticMethod')
 
 ->get('#function#', 'myFunction')
 

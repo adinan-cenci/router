@@ -24,5 +24,3 @@
                 <div id="route">ROUTE: <?php echo $route;?></div>
             </header>
             <main>
-
-        

@@ -15,6 +15,29 @@ class Request
         return null;
     }
 
+    public function getMethod() 
+    {
+        $method = strtolower($_SERVER['REQUEST_METHOD']);
+        
+        if ($method != 'post') {
+            return $method;
+        }
+
+        $headers = $this->getHeaders();
+
+        if (! isset($headers['x-http-method-override'])) {
+            return $method;
+        }
+
+        $overriden = strtolower($headers['x-http-method-override']);
+
+        if (in_array($overriden, ['put', 'delete', 'patch'])) {
+            $method = $overriden;
+        }
+
+        return $method;
+    }
+
     public function getScheme() 
     {
         return isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
@@ -48,7 +71,7 @@ class Request
      * For example:
      * If the script is running in 'public_html/sub-folder/index.php' and the 
      * request url is 'https://foobar.com/sub-folder/user/noobmaster/'
-     * Then the method will return 'user/noobmaster'
+     * then the method will return 'user/noobmaster'
      * @return string
      */
     public function getRoute() 
@@ -62,8 +85,43 @@ class Request
         return rtrim(str_replace($this->route, '', $this->getUrl(false)), '/').'/';
     }
 
+    public function getHeaders() 
+    {
+        $headers = array();
+
+        if (function_exists('getallheaders')) {
+            $headers = \getallheaders();
+        }
+
+        if ($headers) {
+
+            foreach ($headers as $key => $value) {
+                $headers[strtolower($key)] = $value;
+            }
+
+            return $headers;
+        }
+
+        $headers = array();
+
+        foreach ($_SERVER as $key => $value) {
+
+            $key = strtolower($key);
+
+            if (substr($key, 0, 5) != 'http_' && ($key != 'content_type') && $key != 'content_length') {
+                continue;
+            }
+
+            $name = ltrim(str_replace('_', '-', $key), 'http-');
+
+            $headers[$name] = $value;
+        }
+
+        return $headers;
+    }
+
     /** 
-     * Returns the relative path to SCRIPT_NAME in relation to DOCUMENT_ROOT.
+     * Returns the relative path to SCRIPT_NAME's directory in relation to DOCUMENT_ROOT.
      * Example:
      * DOCUMENT_ROOT = '/var/www/' and 
      * SCRIPT_NAME   = '/var/www/foo/bar/index.php' 
