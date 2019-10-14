@@ -1,6 +1,6 @@
 # A small PHP router library
 
-A simple PHP router.
+A simple PHP router to handle http requests.
 
 ## How it works
 
@@ -115,7 +115,7 @@ $r->set404(function($route)
 
 ### ::before($methods = '*', $patterns, $callback)
 
-Defines a middle-ware and the respective callback. The middle-wares will be matched against the requested url before the actual routes, and unlike the routes, more than one middle-ware callback may be executed. It accepts the the same parameter as ::add()
+Defines a middleware and the respective callback. The middlewares will be matched against the requested url before the actual routes, and unlike the routes, more than one middleware callback may be executed. It accepts the the same parameter as ::add()
 
 ```php
 // Example
@@ -131,9 +131,9 @@ $r->before('*', 'restricted-area', function()
 
 Executes the router.
 
-First it will try to match the request url and http method to <u>all</u> middle-wares, then it follows with the proper routes. 
+First it will try to match the request url and http method to <u>all</u> middlewares, then it follows with the proper routes. 
 
-Unlike the middle-wares, the router will execute the callback of the first matching route and stop.
+Unlike the middlewares, the router will execute the callback of the first matching route and stop.
 
 It will throw an exception if unable to execute the callback associated.
 

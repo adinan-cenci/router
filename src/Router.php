@@ -29,10 +29,9 @@ class Router
     public function __construct() 
     {
         // error 404 default function
-        $r = $this;
-        $this->error404 = function() 
+        $this->error404 = function($route) 
         {
-            self::header404();
+            Router::header404();
             echo 'Page not found';
         };
 
@@ -62,7 +61,7 @@ class Router
     }
 
     /**
-     * Associates middleware(s) to a function/method and http method(s)
+     * Associates route(s) and http method(s) to a middleware
      *
      * @param string $methods | separated http methods. Post, get, put etc. Optional.
      * @param string|array $patterns Regex pattern(s)
@@ -85,7 +84,7 @@ class Router
     }
 
     /**
-     * Associates route(s) to a function/method and http method(s)
+     * Associates route(s) and http method(s) to a function/method
      *
      * @param string $methods | separated http methods. Post, get, put etc. Optional.
      * @param string|array $patterns Regex pattern(s)
@@ -107,7 +106,7 @@ class Router
         return $this;
     }
 
-    /** Shortcuts for ::add */
+    /** Shorthands for the ::add method */
     public function get($patterns, $callback) 
     {
         $this->add('get', $patterns, $callback);
@@ -273,13 +272,13 @@ class Router
 
     protected function sortAddParams($params) 
     {
-        $methods    = 'get|post|put|delete|options|patch|head';
+        $methods    = 'get|post|put|delete|options|patch';
         $patterns   = null;
         $callback   = null;
         $x          = 0;
 
         if ($params[0] == '*') {
-            $methods = 'get|post|put|delete|options|patch|head';
+            $methods = 'get|post|put|delete|options|patch';
             $x++;
         } else if (is_string($params[0]) && explode('|', $params[0])) {
             $methods = $params[0];
