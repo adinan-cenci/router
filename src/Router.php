@@ -26,16 +26,21 @@ class Router
 
     protected $headRequest = false;
 
-    public function __construct() 
+    /**
+     * @param string|null $baseDirectory Path to the directory to be used 
+     * in determining the URI. If no directory is informed, it will assume 
+     * the running script's directory.
+     */
+    public function __construct($baseDirectory = null) 
     {
         // error 404 default function
-        $this->error404 = function($route) 
+        $this->error404 = function($uri) 
         {
             Router::header404();
             echo 'Page not found';
         };
 
-        $this->request = new Request();
+        $this->request = new Request($baseDirectory);
     }
 
     public function __destruct() 
@@ -155,7 +160,7 @@ class Router
 
     public function run() 
     {
-        $route  = $this->request->route;
+        $uri    = $this->request->uri;
         $method = $this->request->method;
         $found  = false;
 
@@ -172,7 +177,7 @@ class Router
             list($patterns, $callback) = $ar;
 
             foreach ((array) $patterns as $pattern) {        
-                if (preg_match($pattern, $route, $matches)) {
+                if (preg_match($pattern, $uri, $matches)) {
                     
                     $params = isset($matches[1]) ? $matches[1] : array();
                     $this->call($callback, $params);
@@ -188,7 +193,7 @@ class Router
             list($patterns, $callback) = $ar;
 
             foreach ((array) $patterns as $pattern) {        
-                if (preg_match($pattern, $route, $matches)) {
+                if (preg_match($pattern, $uri, $matches)) {
                     $found = true;
                     break;        
                 }
@@ -206,7 +211,7 @@ class Router
         }
 
         if (! $found) {
-            $this->notFound($route);
+            $this->notFound($uri);
         }
     }
 

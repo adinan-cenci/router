@@ -1,9 +1,24 @@
 <?php
-
 namespace AdinanCenci\Router;
 
 class Request 
 {
+    protected $baseDirectory = '';
+
+    /**
+     * @param string|null $baseDirectory Path to the directory to be used 
+     * in determining the URI. If no directory is informed, it will assume 
+     * the running script's directory.
+     */
+    public function __construct($baseDirectory = null) 
+    {
+        $baseDirectory = $baseDirectory ? 
+            $baseDirectory : 
+            self::getRelativePathToScriptDirectory();
+
+        $this->setBaseDirectory($baseDirectory);
+    }
+
     public function __get($var)
     {
         $methodName = 'get'.ucfirst($var);
@@ -15,29 +30,6 @@ class Request
         return null;
     }
 
-    public function getMethod() 
-    {
-        $method = strtolower($_SERVER['REQUEST_METHOD']);
-        
-        if ($method != 'post') {
-            return $method;
-        }
-
-        $headers = $this->getHeaders();
-
-        if (! isset($headers['x-http-method-override'])) {
-            return $method;
-        }
-
-        $overriden = strtolower($headers['x-http-method-override']);
-
-        if (in_array($overriden, array('put', 'delete', 'patch'))) {
-            $method = $overriden;
-        }
-
-        return $method;
-    }
-
     public function getScheme() 
     {
         return isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
@@ -45,13 +37,13 @@ class Request
 
     public function getPath() 
     {
-        return preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']);
+        return trim(preg_replace('/\?.*/', '', $_SERVER['REQUEST_URI']), '/');
     }
 
     public function getQuery() 
     {
         if (preg_match('/(\?.*)$/', $_SERVER['REQUEST_URI'], $matches)) {
-            return $matches[1];
+            return ltrim($matches[1], '?');
         }
 
         return null;
@@ -59,30 +51,35 @@ class Request
 
     public function getUrl($withQueryString = true) 
     {
+        $path = $this->path;
+
         return 
         $this->scheme.'://'.
         $_SERVER['HTTP_HOST'].
-        $this->path.
-        ( $withQueryString ? $this->query : '' );        
+        ( $path ? '/'.$path : '' ).
+        ( $withQueryString ? '?'.$this->query : '' );        
     }
 
-    /**
-     * It will return the url's path minus the script's directory.
-     * For example:
-     * If the script is running in 'public_html/sub-folder/index.php' and the 
-     * request url is 'https://foobar.com/sub-folder/user/noobmaster/'
-     * then the method will return 'user/noobmaster'
-     * @return string
+    /** 
+     * Return the part of the path past the $baseDirectory.
+     * 
+     * Considere the example:
+     * Your URL:         mywebsite.com/public/about
+     * Your script is inside      /www/public/index.php
+     * Your base directory is     /www/public/ 
+     * ::getUri() would have returned 'about'
+     * 
+     * If the $baseDirectory were /www/
+     * then ::getUri() would have returned 'public/about'
      */
-    public function getRoute() 
+    public function getUri() 
     {
-        // trims off the script file's directory
-        return trim(str_replace($this->scriptDirectory, '', $this->path), '/');
+        return trim(str_replace($this->baseDirectory, '', $this->path), '/');
     }
 
     public function getBaseHref() 
     {
-        return rtrim(str_replace($this->route, '', $this->getUrl(false)), '/').'/';
+        return rtrim(str_replace($this->uri, '', $this->getUrl(false)), '/').'/';
     }
 
     public function getHeaders() 
@@ -120,20 +117,71 @@ class Request
         return $headers;
     }
 
-    /** 
-     * Returns the relative path to SCRIPT_NAME's directory in relation to DOCUMENT_ROOT.
-     * Example:
-     * DOCUMENT_ROOT = '/var/www/' and 
-     * SCRIPT_NAME   = '/var/www/foo/bar/index.php' 
-     * Then the method will return 'foo/bar'
-     * @return string
-     */
-    protected function getScriptDirectory() 
+    public function getMethod() 
     {
-        return trim(dirname($this->forwardSlash($_SERVER['SCRIPT_NAME'])), '/');
+        $method = strtolower($_SERVER['REQUEST_METHOD']);
+        
+        if ($method != 'post') {
+            return $method;
+        }
+
+        $headers = $this->getHeaders();
+
+        if (! isset($headers['x-http-method-override'])) {
+            return $method;
+        }
+
+        $overriden = strtolower($headers['x-http-method-override']);
+
+        if (in_array($overriden, array('put', 'delete', 'patch'))) {
+            $method = $overriden;
+        }
+
+        return $method;
     }
 
-    protected function forwardSlash($string) 
+    protected function setBaseDirectory($directory) 
+    {
+        $dir = self::forwardSlash($directory);
+
+        if (! self::isRelativePath($dir)) {
+            $dir = self::getRelativePathFromDocumentRoot($dir);
+        }
+
+        $this->baseDirectory = trim($dir, '/');
+        return $this;
+    }
+
+    //------------
+
+    protected static function getRelativePathToScriptDirectory() 
+    {
+        return trim( self::forwardSlash(dirname($_SERVER['SCRIPT_NAME'])), '/');
+    }
+
+    protected static function getRelativePathFromDocumentRoot($path) 
+    {
+        return trim( str_replace(self::getDocumentRoot(), '', $path), '/');
+    }
+
+    protected static function getDocumentRoot() 
+    {
+        return self::forwardSlash($_SERVER['DOCUMENT_ROOT']);
+    }
+
+    protected static function isRelativePath($path) 
+    {
+        $path = self::forwardSlash($path);
+
+
+        if ($path[0] == '/') {
+            return false;
+        }
+
+        return (bool) preg_match('#^[A-Z]:/#', $path);
+    }
+
+    protected static function forwardSlash($string) 
     {
         return str_replace('\\', '/', $string);
     }

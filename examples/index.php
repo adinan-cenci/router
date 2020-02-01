@@ -13,7 +13,7 @@ use \AdinanCenci\Router\Router;
 $r          = new Router();
 $r->namespace('\Example\\');
 $content    = '';
-$route      = $r->request->route;
+$uri        = $r->request->uri;
 $baseHref   = $r->request->baseHref;
 
 //----------------
@@ -22,7 +22,7 @@ $baseHref   = $r->request->baseHref;
 $r->before('get', ['/^$/', '/home$/'], function() use ($r) 
 {
     if (! isset($_GET['foo'])) {
-        header('Location: '.$r->request->baseHref.'home/?foo=bar');
+        header('Location: '.$r->request->baseHref.'home/?foo=bar&bar=foo');
         die();
     }
 });
@@ -41,8 +41,9 @@ $r->add(['/^$/', '/home$/'], function() use ($r)
     <table>
         <tr><th>URL:</th><td>'.$r->request->url.'</td></tr>
         <tr><th>BASE HREF:</th><td>'.$r->request->baseHref.'</td></tr>
-        <tr><th>PATH:</th><td>'.$r->request->path.'</td></tr>    
-        <tr><th>ROUTE:</th><td>'.$r->request->route.'</td></tr>    
+        <tr><th>PATH:</th><td>'.$r->request->path.'</td></tr>
+        <tr><th>QUERY:</th><td>'.$r->request->query.'</td></tr>
+        <tr><th>URI:</th><td>'.$r->request->uri.'</td></tr>
     </table>';
 })
 
@@ -105,6 +106,7 @@ $r->add(['/^$/', '/home$/'], function() use ($r)
     </form>
     ';
 })
+
 ->post('#contact/?$#', function() 
 {
     $GLOBALS['content'] .= 
