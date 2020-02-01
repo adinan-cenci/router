@@ -16,7 +16,7 @@ A simple PHP router to handle http requests.
 
 
 
-## How it works (#how-it-works)
+## How it works
 
 ```php
 // Instantiate
@@ -71,13 +71,10 @@ $r->run();
 
 ```
 
-See the contents of the "examples" directory for more details.
-
-
-
-
-
-## Methods (#methods)
+See the contents of the "examples" directory for more details.  
+  
+  
+## Methods
 
 ### ::add($methods = '*', $patterns, $callback) (#add-method)
 
@@ -107,12 +104,9 @@ $r->add('get|post', ['#user/(\w+)$#', '#u/(\w+)$#'], function($handle)
     only on get/post request with URIs ending with "user/'.$handle.'" or "u/'.$handle.'"' ;
 });
 ```
-
-
-
-
-
-### ::add() shorthands (#add-method-shorthands)
+  
+  
+### ::add() shorthands
 
 ```php 
 // Examples
@@ -123,12 +117,9 @@ $r->delete('#home#', $call);  /* is the same as */ $r->add('delete', '#home#', $
 $r->options('#home#', $call); /* is the same as */ $r->add('options', '#home#', $call);
 $r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $call);
 ```
-
-
-
-
-
-### ::set404($callback) (#set-404-method)
+  
+  
+### ::set404($callback)
 
 Define a method to call when all defined routes fail to match against the requested URI. The $callback function will receive by parameter the unmatched uri.
 
@@ -139,12 +130,9 @@ $r->set404(function($uri)
     echo 'Error 404, nothing found related to '.$uri;
 });
 ```
-
-
-
-
-
-### ::before($methods = '*', $patterns, $callback) (#before-method)
+  
+  
+### ::before($methods = '*', $patterns, $callback)
 
 Defines a middleware and the respective callback. The middlewares will be matched against the requested URI before the actual routes, and unlike the routes, more than one middleware callback may be executed. It accepts the the same parameter as ::add()
 
@@ -157,12 +145,9 @@ $r->before('*', '#restricted-area#', function()
     }
 });
 ```
-
-
-
-
-
-### ::namespace($namespace) (#namespace-method)
+  
+  
+### ::namespace($namespace)
 
 Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
 
@@ -173,24 +158,18 @@ $r->namespace('\MyProject\\');
 $r->add('#home#', 'MyClass::method');
 // Will assume it refers to \MyProject\MyClass::method()
 ```
+  
 
-
-
-
-
-### ::header404($replace = true, $responseCode = 404) (#heder-404-method)
+### ::header404($replace = true, $responseCode = 404)
 
 Just a helpful static method to send a 404 header.
 
 ```php
 Router::header404(); // -> HTTP/1.0 404 Not Found
 ```
+  
 
-
-
-
-
-### ::run() (#run-method)
+### ::run()
 
 Executes the router.
 
@@ -199,12 +178,9 @@ First it will try to match the request URI and http method to <u>all</u> middlew
 Unlike the middlewares, the router will execute the callback of the first matching route and stop.
 
 It will throw an exception if unable to execute the callback associated.
+  
 
-
-
-
-
-## Working inside subdirectories(#working-inside-subdirectories)
+## Working inside subdirectories
 
 The router will automatically work inside sub-folders. Consider the example:
 Your URL: `http://yourwebsite.com/foobar/about`
@@ -216,12 +192,9 @@ Still, if you need to work with `foobar/about` instead, then you must pass `/www
 //               /www/foobar/index.php
 $r = new Router('/www/');
 ```
+  
 
-
-
-
-
-## Server configuration (#server-configuration)
+## Server configuration
 
 In order for it to work, we need to rewrite the requests to the file containing our router.
 
@@ -237,11 +210,8 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 # Rewrite to index.php
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
-
-
-
-
-
+  
+  
 ## License
 
 MIT
