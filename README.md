@@ -187,10 +187,9 @@ $r = new Router('/www/');
 <br><br>  
 ## Server configuration
 
-In order for it to work, we need to rewrite the requests to the file containing our router.  
-Below are some examples:
-
-Here is .htaccess for Apache:
+In order for it to work, we need to rewrite the requests to the file containing our router. Below are some examples:  
+  
+Here is the example of a .htaccess for Apache:
 
 ```
 RewriteEngine on
@@ -203,7 +202,7 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
 
-Here is a web.config for Microsoft IIS:
+Here is the example of a web.config for Microsoft IIS:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
@@ -224,7 +223,7 @@ Here is a web.config for Microsoft IIS:
 </configuration>
 ```
 
-Here is nginx example:
+Here is the example for nginx:
 ```
 location / {
     if ($script_filename !~ "-f") {

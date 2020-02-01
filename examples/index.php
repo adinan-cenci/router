@@ -42,8 +42,8 @@ $r->add(['/^$/', '/home$/'], function() use ($r)
         <tr><th>URL:</th><td>'.$r->request->url.'</td></tr>
         <tr><th>BASE HREF:</th><td>'.$r->request->baseHref.'</td></tr>
         <tr><th>PATH:</th><td>'.$r->request->path.'</td></tr>
-        <tr><th>QUERY:</th><td>'.$r->request->query.'</td></tr>
         <tr><th>URI:</th><td>'.$r->request->uri.'</td></tr>
+        <tr><th>QUERY:</th><td>'.$r->request->query.'</td></tr>
     </table>';
 })
 

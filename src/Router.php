@@ -219,7 +219,7 @@ class Router
     {
         $params = (array) $params;
 
-        if (! is_string($callback)) {
+        if (! is_string($callback)) { // function
             call_user_func_array($callback, $params);
             return;
         }
@@ -231,10 +231,11 @@ class Router
         /*----*/
 
         if (!substr_count($callback, '::') and !function_exists($callback)) {
-            throw new \Exception('function '.$callback.' is not defined', 1);            
+            throw new \Exception('function '.$callback.' is not defined', 1);
+            return;           
         }
 
-        if (! substr_count($callback, '::')) {
+        if (! substr_count($callback, '::')) { // name of a function
             call_user_func_array($callback, $params);
             return;
         }
@@ -244,7 +245,8 @@ class Router
         list($controller, $method) = explode('::', $callback);
 
         if (! class_exists($controller)) {
-            throw new \Exception('Class '.$controller.' not found', 1);            
+            throw new \Exception('Class '.$controller.' not found', 1);
+            return;          
         }
 
         /*----*/
