@@ -176,7 +176,7 @@ It will throw an exception if unable to execute the callback associated.
 
 The router will automatically work inside sub-folders. Consider the example:
 Your URL: `http://yourwebsite.com/foobar/about`
-If your router is inside the `/www/foobar/`, the router will match the routes against `about` and <u>**not**</u> `foobar/about`.
+If your router is inside `/www/foobar/`, the router will match the routes against `about` and <u>**not**</u> `foobar/about`.
 
 Still, if you need to work with `foobar/about` instead, then you must pass `/www/` as your base directory to the Router class' constructor.
 
@@ -187,9 +187,10 @@ $r = new Router('/www/');
 <br><br>  
 ## Server configuration
 
-In order for it to work, we need to rewrite the requests to the file containing our router.
+In order for it to work, we need to rewrite the requests to the file containing our router.  
+Below are some examples:
 
-Here is a .htaccess for example:
+Here is .htaccess for Apache:
 
 ```
 RewriteEngine on
@@ -201,7 +202,38 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 # Rewrite to index.php
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
+
+Here is a web.config for Microsoft IIS:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+            <rules>
+                <rule name="RewriteNonExistingFiles">
+                    <match url="^.{1,}$" />
+                    <conditions>
+                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                    </conditions>
+                    <action type="Rewrite" url="/index.php" appendQueryString="true" />
+                </rule>
+            </rules>
+        </rewrite>
+    </system.webServer>
+</configuration>
+```
+
+Here is nginx example:
+```
+location / {
+    if ($script_filename !~ "-f") {
+        rewrite "^/.{1,}$" /index.php;
+    }
+}
+```
 <br><br>  
+
 ## License
 
 MIT
