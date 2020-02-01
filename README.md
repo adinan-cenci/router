@@ -73,7 +73,7 @@ $r->run();
 ```
 
 See the contents of the "examples" directory for more details.
-<br><br>  
+<br><br><br>  
 ## Methods
 
 ### ::add($methods = '*', $patterns, $callback) (#add-method)
@@ -171,7 +171,7 @@ then it follows with the proper routes.
 Unlike the middlewares, the router will execute the callback of the first matching route and stop.
 
 It will throw an exception if unable to execute the callback associated.
-<br><br>  
+<br><br><br>  
 ## Working inside subdirectories
 
 The router will automatically work inside sub-folders. Consider the example:
