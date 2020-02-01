@@ -73,7 +73,7 @@ $r->run();
 
 See the contents of the "examples" directory for more details.
 <br />
-<br />
+<br /> 
 ## Methods
 
 ### ::add($methods = '*', $patterns, $callback) (#add-method)
@@ -105,7 +105,7 @@ $r->add('get|post', ['#user/(\w+)$#', '#u/(\w+)$#'], function($handle)
 });
 ```
 <br />
-<br />
+<br /> 
 ### ::add() shorthands
 
 ```php 
@@ -118,7 +118,7 @@ $r->options('#home#', $call); /* is the same as */ $r->add('options', '#home#', 
 $r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $call);
 ```
 <br />
-<br />
+<br /> 
 ### ::set404($callback)
 
 Define a method to call when all defined routes fail to match against the requested URI. The $callback function will receive by parameter the unmatched uri.
@@ -131,7 +131,7 @@ $r->set404(function($uri)
 });
 ```
 <br />
-<br />
+<br /> 
 ### ::before($methods = '*', $patterns, $callback)
 
 Defines a middleware and the respective callback. The middlewares will be matched against the requested URI before the actual routes, and unlike the routes, more than one middleware callback may be executed. It accepts the the same parameter as ::add()
@@ -146,7 +146,7 @@ $r->before('*', '#restricted-area#', function()
 });
 ```
 <br />
-<br />
+<br /> 
 ### ::namespace($namespace)
 
 Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
@@ -159,7 +159,7 @@ $r->add('#home#', 'MyClass::method');
 // Will assume it refers to \MyProject\MyClass::method()
 ```
 <br />
-<br />
+<br /> 
 ### ::header404($replace = true, $responseCode = 404)
 
 Just a helpful static method to send a 404 header.
@@ -168,7 +168,7 @@ Just a helpful static method to send a 404 header.
 Router::header404(); // -> HTTP/1.0 404 Not Found
 ```
 <br />
-<br />
+<br /> 
 ### ::run()
 
 Executes the router.
@@ -178,8 +178,8 @@ First it will try to match the request URI and http method to <u>all</u> middlew
 Unlike the middlewares, the router will execute the callback of the first matching route and stop.
 
 It will throw an exception if unable to execute the callback associated.
-  
-
+<br />
+<br /> 
 ## Working inside subdirectories
 
 The router will automatically work inside sub-folders. Consider the example:
@@ -193,7 +193,7 @@ Still, if you need to work with `foobar/about` instead, then you must pass `/www
 $r = new Router('/www/');
 ```
 <br />
-<br />
+<br /> 
 ## Server configuration
 
 In order for it to work, we need to rewrite the requests to the file containing our router.
@@ -211,7 +211,7 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
 <br />
-<br />
+<br /> 
 ## License
 
 MIT
