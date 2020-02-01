@@ -71,9 +71,9 @@ $r->run();
 
 ```
 
-See the contents of the "examples" directory for more details.  
-  
-  
+See the contents of the "examples" directory for more details.
+<br />
+<br />
 ## Methods
 
 ### ::add($methods = '*', $patterns, $callback) (#add-method)
@@ -104,8 +104,8 @@ $r->add('get|post', ['#user/(\w+)$#', '#u/(\w+)$#'], function($handle)
     only on get/post request with URIs ending with "user/'.$handle.'" or "u/'.$handle.'"' ;
 });
 ```
-  
-  
+<br />
+<br />
 ### ::add() shorthands
 
 ```php 
@@ -117,8 +117,8 @@ $r->delete('#home#', $call);  /* is the same as */ $r->add('delete', '#home#', $
 $r->options('#home#', $call); /* is the same as */ $r->add('options', '#home#', $call);
 $r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $call);
 ```
-  
-  
+<br />
+<br />
 ### ::set404($callback)
 
 Define a method to call when all defined routes fail to match against the requested URI. The $callback function will receive by parameter the unmatched uri.
@@ -130,8 +130,8 @@ $r->set404(function($uri)
     echo 'Error 404, nothing found related to '.$uri;
 });
 ```
-  
-  
+<br />
+<br />
 ### ::before($methods = '*', $patterns, $callback)
 
 Defines a middleware and the respective callback. The middlewares will be matched against the requested URI before the actual routes, and unlike the routes, more than one middleware callback may be executed. It accepts the the same parameter as ::add()
@@ -145,8 +145,8 @@ $r->before('*', '#restricted-area#', function()
     }
 });
 ```
-  
-  
+<br />
+<br />
 ### ::namespace($namespace)
 
 Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
@@ -158,8 +158,8 @@ $r->namespace('\MyProject\\');
 $r->add('#home#', 'MyClass::method');
 // Will assume it refers to \MyProject\MyClass::method()
 ```
-  
-
+<br />
+<br />
 ### ::header404($replace = true, $responseCode = 404)
 
 Just a helpful static method to send a 404 header.
@@ -167,8 +167,8 @@ Just a helpful static method to send a 404 header.
 ```php
 Router::header404(); // -> HTTP/1.0 404 Not Found
 ```
-  
-
+<br />
+<br />
 ### ::run()
 
 Executes the router.
@@ -192,8 +192,8 @@ Still, if you need to work with `foobar/about` instead, then you must pass `/www
 //               /www/foobar/index.php
 $r = new Router('/www/');
 ```
-  
-
+<br />
+<br />
 ## Server configuration
 
 In order for it to work, we need to rewrite the requests to the file containing our router.
@@ -210,8 +210,8 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 # Rewrite to index.php
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
-  
-  
+<br />
+<br />
 ## License
 
 MIT
