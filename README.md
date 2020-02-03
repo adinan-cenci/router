@@ -12,7 +12,7 @@ A simple PHP router to handle http requests.
   - [::header404()](#header404replace--true-responsecode--404) 
   - [::passParametersAsArray($bool = true)](#passParametersAsArray)
   - [::run()](#run)
-  - [::parameter($index, $alternative = null)](#parameter)
+  - [::parameter($index, $alternative = null)](#parameterindex-alternative--null)
 - [Working inside subdirectories](#working-inside-subdirectories)
 - [Server configuration](#server-configuration)
   - [Apache](#apache)
@@ -151,7 +151,25 @@ $r->before('*', '#restricted-area#', function()
 ### ::passParametersAsArray($bool = true)
 By default the captured groups will be passed as individual parameters to the callbacks. By calling 
 this method they will instead be passed in a single associative array.
+```php
+// Default behaviour:
+$r->add('#products/(?<category>\d+)/(?<id>\d+)#', function($category, $id) 
+{
+    echo $category.', '.$id;
+});
+
+
+$r->passParametersAsArray();
+
+
+$r->add('#products/(?<category>\d+)/(?<id>\d+)#', function($parameters) 
+{
+    echo $parameters['category'].', '.$parameters['id'];
+});
+
+```
 <br><br>  
+
 ### ::namespace($namespace)
 
 Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
@@ -218,6 +236,7 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 # Rewrite to index.php
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
+<br><br>  
 
 ### Nginx
 Here is the example for nginx:
@@ -228,6 +247,7 @@ location / {
     }
 }
 ```
+<br><br>  
 
 ### IIS
 Here is the example of a web.config for Microsoft IIS:
