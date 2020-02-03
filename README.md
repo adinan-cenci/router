@@ -159,6 +159,7 @@ $r->add('#products/(?<category>\d+)/(?<id>\d+)#', function($category, $id)
 });
 
 
+// As a single array:
 $r->passParametersAsArray();
 
 
@@ -179,7 +180,7 @@ Set the default namespace, so there will be no need to write the entire class na
 $r->namespace('\MyProject\\');
 
 $r->add('#home#', 'MyClass::method');
-// Will assume it refers to \MyProject\MyClass::method()
+// The router will assume it refers to \MyProject\MyClass::method()
 ```
 <br><br>  
 ### ::header404($replace = true, $responseCode = 404)
@@ -200,7 +201,7 @@ Unlike the middlewares, the router will execute the callback of the first matchi
 It will throw an exception if unable to execute the callback associated.
 <br><br><br>  
 
-### parameter($index, $alternative = null)
+### ::parameter($index, $alternative = null)
 
 Besides beign passed as parameters to the callbacks, the capture groups can also be accessed through this 
 method.
