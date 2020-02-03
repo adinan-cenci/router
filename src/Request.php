@@ -14,7 +14,7 @@ class Request
     {
         $baseDirectory = $baseDirectory ? 
             $baseDirectory : 
-            self::getRelativePathToScriptDirectory();
+            Helper::getRelativePathToScriptDirectory();
 
         $this->setBaseDirectory($baseDirectory);
     }
@@ -58,6 +58,11 @@ class Request
         $_SERVER['HTTP_HOST'].
         ( $path ? '/'.$path : '' ).
         ( $withQueryString ? '?'.$this->query : '' );        
+    }
+
+    public function getBaseDirectory() 
+    {
+        return $this->baseDirectory;
     }
 
     /** 
@@ -142,47 +147,13 @@ class Request
 
     protected function setBaseDirectory($directory) 
     {
-        $dir = self::forwardSlash($directory);
+        $dir = Helper::forwardSlash($directory);
 
-        if (! self::isRelativePath($dir)) {
-            $dir = self::getRelativePathFromDocumentRoot($dir);
+        if (! Helper::isRelativePath($dir)) {
+            $dir = Helper::getRelativePathFromDocumentRoot($dir);
         }
 
         $this->baseDirectory = trim($dir, '/');
         return $this;
-    }
-
-    //------------
-
-    protected static function getRelativePathToScriptDirectory() 
-    {
-        return trim( self::forwardSlash(dirname($_SERVER['SCRIPT_NAME'])), '/');
-    }
-
-    protected static function getRelativePathFromDocumentRoot($path) 
-    {
-        return trim( str_replace(self::getDocumentRoot(), '', $path), '/');
-    }
-
-    protected static function getDocumentRoot() 
-    {
-        return self::forwardSlash($_SERVER['DOCUMENT_ROOT']);
-    }
-
-    protected static function isRelativePath($path) 
-    {
-        $path = self::forwardSlash($path);
-
-
-        if ($path[0] == '/') {
-            return false;
-        }
-
-        return (bool) preg_match('#^[A-Z]:/#', $path);
-    }
-
-    protected static function forwardSlash($string) 
-    {
-        return str_replace('\\', '/', $string);
     }
 }

@@ -132,6 +132,7 @@ $r->add(['/^$/', '/home$/'], function() use ($r)
     <p>Nothing found related to "'.$path.'"</p>';
 });
 
+
 //----------------
 
 try {

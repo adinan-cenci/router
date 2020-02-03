@@ -4,15 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## 2.1.0 - 2020-02-03
+
+### Fixed
+- An error was occurring when omitting the first parameter of the of methods ::add and ::before.
+- Only the first capture group was beign passed as a parameter to the callback.
+
+### Added
+- Now ::add and ::before accept file paths as callback, the file will be required if it exists 
+  and an exception will be thrown if it doesn't.
+- Added the method ::passParametersAsArray(). It changes how capture groups are passed to the 
+  callbacks. By default the capture groups in the regex patterns are passed to the callbacks as 
+  individual parameters, if ::passParametersAsArray(true) is called then the capture groups will 
+  be passed in single parameter as an array.
+- Added the ::parameter() method to retrieve captured groups.
+
+
+
 ## 2.0.0 - 2020-02-01
 
 ### Changed
-
 - Request::getRoute() and Request::$route renamed to Request::getUri() and Request::$uri respectively.
 - URIs no longer come with trailing slashes, as to avoid adding a `/?` at the end of the regex patterns.
 
 ### Added
-
 - The ability to inform the base directory in the Router's constructor.
 
 

@@ -10,9 +10,14 @@ A simple PHP router to handle http requests.
   - [::before() Middleware](#beforemethods---patterns-callback)
   - [::namespace()](#namespacenamespace)
   - [::header404()](#header404replace--true-responsecode--404) 
+  - [::passParametersAsArray($bool = true)](#passParametersAsArray)
   - [::run()](#run)
+  - [::parameter($index, $alternative = null)](#parameter)
 - [Working inside subdirectories](#working-inside-subdirectories)
 - [Server configuration](#server-configuration)
+  - [Apache](#apache)
+  - [Nginx](#nginx)
+  - [IIS](#iis)
 - [License](#license)
 
 
@@ -82,7 +87,7 @@ Defines a route and the respective callback. Note that only the callback of the 
 
 - $methods: A string representing the http methods ( GET, POST, PUT, DELETE, OPTIONS and PATCH ) separated with \| or a single '*' for all of them. This parameter is also optional.
 - $patterns: Regex or array of regex patterns to be tested against the requested URI.
-- $callback: An anonymous function, the name of a function or the method of a class. The router will attempt to instantiate classes in order to call non-static methods. Capture groups in the regex patterns will be passed as parameters to the callback.
+- $callback: An anonymous function, the name of a function, the method of a class or the path to a file to be required. The router will attempt to instantiate classes in order to call non-static methods. Capture groups in the regex patterns will be passed as parameters to the callback. If the callback is a valid path to a file, the captured groups will be available inside an array called `$parameters`.
 
 ```php
 // Examples
@@ -143,6 +148,10 @@ $r->before('*', '#restricted-area#', function()
 });
 ```
 <br><br>  
+### ::passParametersAsArray($bool = true)
+By default the captured groups will be passed as individual parameters to the callbacks. By calling 
+this method they will instead be passed in a single associative array.
+<br><br>  
 ### ::namespace($namespace)
 
 Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
@@ -172,6 +181,13 @@ Unlike the middlewares, the router will execute the callback of the first matchi
 
 It will throw an exception if unable to execute the callback associated.
 <br><br><br>  
+
+### parameter($index, $alternative = null)
+
+Besides beign passed as parameters to the callbacks, the capture groups can also be accessed through this 
+method.
+<br><br><br>  
+
 ## Working inside subdirectories
 
 The router will automatically work inside sub-folders. Consider the example:
@@ -189,8 +205,9 @@ $r = new Router('/www/');
 
 In order for it to work, we need to rewrite the requests to the file containing our router. Below are some examples:  
   
-Here is the example of a .htaccess for Apache:
 
+### Apache
+Here is the example of a .htaccess for Apache:
 ```
 RewriteEngine on
 
@@ -202,6 +219,17 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
 
+### Nginx
+Here is the example for nginx:
+```
+location / {
+    if ($script_filename !~ "-f") {
+        rewrite "^/.{1,}$" /index.php;
+    }
+}
+```
+
+### IIS
 Here is the example of a web.config for Microsoft IIS:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -222,16 +250,8 @@ Here is the example of a web.config for Microsoft IIS:
     </system.webServer>
 </configuration>
 ```
-
-Here is the example for nginx:
-```
-location / {
-    if ($script_filename !~ "-f") {
-        rewrite "^/.{1,}$" /index.php;
-    }
-}
-```
 <br><br>  
+
 
 ## License
 

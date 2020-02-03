@@ -4,9 +4,13 @@ namespace AdinanCenci\Router;
 
 class Router 
 {
-    protected $defaultNamespace = '';
+    protected $defaultNamespace         = '';
 
-    protected $request = null;
+    protected $request                  = null;
+
+    protected $passParametersAsArray    = false;
+
+    protected $parameters               = array();
 
     protected $before = array(
         'get'       => array(), 
@@ -63,6 +67,17 @@ class Router
     {
         $this->defaultNamespace = $namespace;
         return $this;
+    }
+
+    public function passParametersAsArray($bool = true) 
+    {
+        $this->passParametersAsArray = $bool;
+        return $this;
+    }
+
+    public function parameter($index, $alternative = null) 
+    {
+        return empty($this->parameters[$index]) ? $alternative : $this->parameters[$index];
     }
 
     /**
@@ -177,9 +192,8 @@ class Router
             list($patterns, $callback) = $ar;
 
             foreach ((array) $patterns as $pattern) {        
-                if (preg_match($pattern, $uri, $matches)) {
-                    
-                    $params = isset($matches[1]) ? $matches[1] : array();
+                if ($this->match($pattern, $uri, $params)) {
+                    $this->parameters = $params;                    
                     $this->call($callback, $params);
 
                 }
@@ -188,12 +202,14 @@ class Router
 
         //------------ 
 
+        $this->parameters = array();
         foreach ($this->routes[$method] as $key => $ar) {
 
             list($patterns, $callback) = $ar;
 
             foreach ((array) $patterns as $pattern) {        
-                if (preg_match($pattern, $uri, $matches)) {
+                if ($this->match($pattern, $uri, $params)) {
+                    $this->parameters = $params;
                     $found = true;
                     break;        
                 }
@@ -201,9 +217,7 @@ class Router
 
             if (! $found) {
                 continue;
-            }            
-
-            $params = isset($matches[1]) ? $matches[1] : array();
+            }
 
             $this->call($callback, $params);
 
@@ -215,12 +229,44 @@ class Router
         }
     }
 
+    protected function match($pattern, $subject, &$matches) 
+    {
+        if (! preg_match($pattern, $subject, $mtchs, \PREG_OFFSET_CAPTURE)) {
+            return false;
+        }
+
+        $matches = array();
+
+        array_shift($mtchs);
+
+        $mtchs = array_map('unserialize', array_unique(array_map('serialize', $mtchs)));
+
+        foreach ($mtchs as $key => $v) {
+            $matches[$key] = $v[0];
+        }
+
+        return true;
+    }
+
     protected function call($callback, $params) 
     {
         $params = (array) $params;
 
         if (! is_string($callback)) { // function
-            call_user_func_array($callback, $params);
+            $this->callFunction($callback, $params);
+            return;
+        }
+
+        /*----*/
+
+        if (self::isFilePath($callback)) { // file
+
+            if (! file_exists($callback)) {
+                throw new \Exception('file '.$callback.' does not exist', 1);
+                return;
+            }
+
+            $this->requireFile($callback, $params);
             return;
         }
 
@@ -232,11 +278,11 @@ class Router
 
         if (!substr_count($callback, '::') and !function_exists($callback)) {
             throw new \Exception('function '.$callback.' is not defined', 1);
-            return;           
+            return;
         }
 
         if (! substr_count($callback, '::')) { // name of a function
-            call_user_func_array($callback, $params);
+            $this->callFunction($callback, $params);
             return;
         }
 
@@ -254,7 +300,7 @@ class Router
         $reflMethod = new \ReflectionMethod($controller, $method);
         
         if ($reflMethod->isStatic() and $reflMethod->isPublic()) {
-            call_user_func_array($callback, $params);
+            $this->callFunction($callback, $params);
             return;
         }
 
@@ -263,11 +309,25 @@ class Router
         $reflClass = new \ReflectionClass($controller);
 
         if ($reflClass->IsInstantiable() and $reflMethod->isPublic() and !$reflMethod->isStatic()) {
-            call_user_func_array(array(new $controller, $method), $params);
+            $this->callFunction(array(new $controller, $method), $params);
             return;
         }
 
         throw new \Exception('Incapable of accessing '.$callback, 1);        
+    }
+
+    protected function requireFile($file, $parameters) 
+    {
+        require $file;
+    }
+
+    protected function callFunction($func, $params) 
+    {
+        if (! $this->passParametersAsArray) {
+            return call_user_func_array($func, $params);
+        }
+
+        return call_user_func($func, $params);
     }
 
     protected function notFound($path) 
@@ -284,11 +344,9 @@ class Router
         $callback   = null;
         $x          = 0;
 
-        if ($params[0] == '*') {
-            $methods = 'get|post|put|delete|options|patch';
+        if ($params[0] == '*') { 
             $x++;
-        } else if (is_string($params[0]) && explode('|', $params[0])) {
-            $methods = $params[0];
+        } else if (!is_array($params[0]) && !self::isRegexPattern($params[0])) {
             $x++;
         }
 
@@ -305,5 +363,19 @@ class Router
     public static function header404($replace = true, $responseCode = 404) 
     {
         header('HTTP/1.0 404 Not Found', $replace, $responseCode);
+    }
+
+    protected static function isRegexPattern($string) 
+    {
+        if (! is_string($string)) {
+            return false;
+        }
+
+        return $string[0] == '/' || $string[0] == '#';
+    }
+
+    protected static function isFilePath($string) 
+    {
+        return preg_match('/\.[a-z]{3}$/', $string);
     }
 }
