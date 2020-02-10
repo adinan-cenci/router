@@ -4,7 +4,7 @@ A simple PHP router to handle http requests.
 
 - [How it works](#how-it-works)
 - [Methods](#methods)
-  - [::add() Add routes](#addmethods---patterns-callback-add-method)
+  - [::add() Add routes](#addmethods---patterns-callback)
   - [::add() Shorthands](#add-shorthands)
   - [::set404() No match found](#set404callback)
   - [::before() Middleware](#beforemethods---patterns-callback)
