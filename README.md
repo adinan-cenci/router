@@ -18,6 +18,7 @@ A simple PHP router to handle http requests.
   - [Apache](#apache)
   - [Nginx](#nginx)
   - [IIS](#iis)
+- [Installing](#installing)
 - [License](#license)
 
 
@@ -32,26 +33,15 @@ $r = new Router();
 
 //---Defining the routes----------------------
 
-$r->get(['#^$#', '#home$#'], function() // an anonymous functions
+$r->get(['#^$#', '#home$#'], function() // an anonymous function
 {
     echo 'This is the home page.';
 })
 
 //-------------
 
-->get('#about-us$#', 'aboutPage') // a function
+->get('#about-us$#', 'aboutPage') // a named function
 
-//-------------
-    
-->get('#contact$#', function() 
-{
-    echo 'This is the contact form page';
-})
-
-->post('#contact$#', function() 
-{
-    echo 'Sending your e-mail...';
-})
 
 //-------------
 
@@ -81,7 +71,7 @@ See the contents of the "examples" directory for more details.
 <br><br><br>  
 ## Methods
 
-### ::add($methods = '*', $patterns, $callback) (#add-method)
+### ::add($methods = '*', $patterns, $callback)
 
 Defines a route and the respective callback. Note that only the callback of the first matching route will be executed.
 
@@ -270,6 +260,14 @@ Here is the example of a web.config for Microsoft IIS:
         </rewrite>
     </system.webServer>
 </configuration>
+```
+<br><br>  
+
+
+## Installing
+Use composer
+```
+composer require adinan-cenci/router
 ```
 <br><br>  
 

@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.1 - 2020-02-10
+### Fixed
+- Trying to set up routers for options and patch methods were generating error.
+- Tidying up the documentation and some grammar errors.
+
+
+
 
 ## 2.1.0 - 2020-02-03
-
 ### Fixed
 - An error was occurring when omitting the first parameter of the of methods ::add and ::before.
 - Only the first capture group was beign passed as a parameter to the callback.
@@ -22,8 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## 2.0.0 - 2020-02-01
 
+
+## 2.0.0 - 2020-02-01
 ### Changed
 - Request::getRoute() and Request::$route renamed to Request::getUri() and Request::$uri respectively.
 - URIs no longer come with trailing slashes, as to avoid adding a `/?` at the end of the regex patterns.
@@ -33,21 +40,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## 1.0.1 - 2019-10-14
 
+## 1.0.1 - 2019-10-14
 Just tidying up the documentation and some grammar errors.
 
+
+
+
 ## 1.0.0 - 2019-10-13
-
 ### Removed
-
 - Route::setNamespace($namespace)
 - Route::getUrl()
 - Route::getPath()
 - Route::getBaseHref()
 
 ### Added
-
 - Router::namespace($namespace)
 - Router::request propriety.
 - Added support for before route middlewares.
@@ -57,21 +64,23 @@ Just tidying up the documentation and some grammar errors.
   - Router::patch() shorthand.
 
 ### Changed
-
 - Route::add has been overloaded, not only the $methods parameter accepts a ''*'' 
   to represent all http methods, but it is now optional.
 - Request logic has been moved to a new separated class: Request.
 - Now the library also considers the x-http-method-override header to determine the 
   http method used.
 
-## 0.2.0 - 2018-02-03
 
+
+
+## 0.2.0 - 2018-02-03
 ### Changed
 Now the router may call non-static methods by instantiating objects
 A bug fixed: ::namespace() may be used to set the defaultnamespace for functions/methods.
 
 
-## 0.1.1 - 2018-01-29
 
+
+## 0.1.1 - 2018-01-29
 ### Changed
 A bug fixed: Router::getPath() used to come with the query string attatched. 

@@ -16,14 +16,18 @@ class Router
         'get'       => array(), 
         'post'      => array(), 
         'put'       => array(), 
-        'delete'    => array()
+        'delete'    => array(), 
+        'options'   => array(), 
+        'patch'     => array()
     );
 
     protected $routes = array(
         'get'       => array(), 
         'post'      => array(), 
         'put'       => array(), 
-        'delete'    => array()
+        'delete'    => array(), 
+        'options'   => array(), 
+        'patch'     => array()
     );
 
     protected $error404;
@@ -41,7 +45,7 @@ class Router
         $this->error404 = function($uri) 
         {
             Router::header404();
-            echo 'Page not found';
+            echo 'Page "'.$uri.'" not found';
         };
 
         $this->request = new Request($baseDirectory);
