@@ -23,6 +23,9 @@ abstract class Helper
     {
         $path = self::forwardSlash($path);
 
+        if ($path == '') {
+            return true;
+        }
 
         if ($path[0] == '/') {
             return false;
