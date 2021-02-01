@@ -67,7 +67,7 @@ class Router
         return null;
     }
 
-    public function namespace($namespace) 
+    public function setNamespace($namespace) 
     {
         $this->defaultNamespace = $namespace;
         return $this;

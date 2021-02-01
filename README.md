@@ -161,13 +161,13 @@ $r->add('#products/(?<category>\d+)/(?<id>\d+)#', function($parameters)
 ```
 <br><br>  
 
-### ::namespace($namespace)
+### ::setNamespace($namespace)
 
 Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
 
 ```php
 // Example
-$r->namespace('\MyProject\\');
+$r->setNamespace('\MyProject\\');
 
 $r->add('#home#', 'MyClass::method');
 // The router will assume it refers to \MyProject\MyClass::method()
@@ -213,7 +213,7 @@ $r = new Router('/www/');
 ## Server configuration
 
 In order for it to work, we need to rewrite the requests to the file containing our router. Below are some examples:  
-  
+
 
 ### Apache
 Here is the example of a .htaccess for Apache:
