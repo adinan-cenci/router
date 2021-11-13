@@ -343,15 +343,21 @@ class Router
 
     protected function sortAddParams($params) 
     {
-        $methods    = 'get|post|put|delete|options|patch';
+        $methods    = null;
         $patterns   = null;
         $callback   = null;
         $x          = 0;
 
-        if ($params[0] == '*') { 
+        if ($params[0] == '*') {
+            $methods = 'get|post|put|delete|options|patch';
             $x++;
         } else if (!is_array($params[0]) && !self::isRegexPattern($params[0])) {
+            $methods = $params[0];
             $x++;
+        }
+
+        if (! $methods) {
+            $methods = 'get|post|put|delete|options|patch';
         }
 
         $patterns = $params[$x];
@@ -380,6 +386,6 @@ class Router
 
     protected static function isFilePath($string) 
     {
-        return preg_match('/\.[a-z]{3}$/', $string);
+        return preg_match('/\.[a-z]{3,4}$/', $string);
     }
 }
