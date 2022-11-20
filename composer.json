@@ -12,10 +12,27 @@
             "role": "developer"
         }
     ], 
-    "require": { "php": ">=5.3" }, 
+    "require": { 
+        "php": ">=5.3",
+        "adinancenci/psr-7": "*",
+        "adinancenci/psr-17": "*",
+        "psr/http-server-handler": "1.0.x-dev",
+        "psr/http-server-middleware": "1.0.x-dev"
+    }, 
     "autoload": {
         "psr-4": {
             "AdinanCenci\\Router\\": "src/"
         }
-    }
+    },
+    "minimum-stability": "dev", 
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/adinan-cenci/psr-7.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/adinan-cenci/psr-17.git"
+        }
+    ]
 }
