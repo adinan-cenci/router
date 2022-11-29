@@ -5,9 +5,11 @@ use AdinanCenci\Router\Helper\Server;
 use AdinanCenci\Router\Routes\RouteCollection;
 use AdinanCenci\Router\Routes\Route;
 
+use AdinanCenci\Psr7\Uri;
 use AdinanCenci\Psr17\ServerRequestFactory;
 use AdinanCenci\Psr17\ResponseFactory;
 use AdinanCenci\Psr17\StreamFactory;
+use AdinanCenci\Psr17\Helper\Globals;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -45,11 +47,11 @@ class Router implements RequestHandlerInterface
             ? File::trailingSlash(File::forwardSlash($baseDirectory))
             : Server::getCurrentFileParentDirectory();
 
-        $this->responseFactory = new ResponseFactory();
-        $this->streamFactory = new StreamFactory();
+        $this->responseFactory      = new ResponseFactory();
+        $this->streamFactory        = new StreamFactory();
 
         $this->middlewareCollection = new RouteCollection();
-        $this->routeCollection = new RouteCollection();
+        $this->routeCollection      = new RouteCollection();
     }
 
     public function __get($var) 
@@ -203,6 +205,24 @@ class Router implements RequestHandlerInterface
         $requestUri = ltrim($request->getUri()->getPath(), '/');
         $woulBePath = Server::getServerRoot() . $requestUri;
         return str_replace($this->baseDirectory, '', $woulBePath);
+    }
+
+    public function getBaseUrl() : string
+    {
+        $scheme   = Globals::getScheme();
+        $password = Globals::getPassword();
+        $username = Globals::getUser();
+        $host     = Globals::getHost();
+        $port     = Globals::getPort();
+        $path     = str_replace(Server::getServerRoot(), '', $this->baseDirectory);
+        $uri      = new Uri($scheme, $username, $password, $host, $port, $path, '', '');
+
+        return (string) $uri;
+    }
+
+    public function getUrl($path) 
+    {
+        return $this->getBaseUrl() . ltrim($path, '/');
     }
 
     /**

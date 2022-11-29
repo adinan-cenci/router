@@ -1,41 +1,34 @@
 <?php 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-//----------------
-
-require '../vendor/autoload.php';
 use \AdinanCenci\Router\Router;
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+require '../vendor/autoload.php';
+
 //----------------
 
-
-function userIsLogged() 
+function userIsLoggedIn() 
 {
     return false;
 }
 
-
-
 $router = new Router();
-
 
 $router->middleware('*', '#^admin/?#', function($request, $handler) 
 {
-    if (! userIsLogged()) {
+    if (! userIsLoggedIn()) {
         return $handler->responseFactory
         ->createResponse(302, 'not logged')
-        ->withHeader('Location', '/router/examples/login');
+        ->withHeader('Location', $handler->getUrl('examples/login'));
     }
 });
 
-
-$router->add('get', '/home$/', function() 
+$router->add('get', '#home$#', function() 
 {
     echo 'Home page';
 });
 
-$router->add('get', '/login$/', function() 
+$router->add('get', '#login$#', function() 
 {
     echo 
     '<label>Username:</label><input type="text" name="username"/><br>
