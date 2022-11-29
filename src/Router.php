@@ -2,6 +2,8 @@
 namespace AdinanCenci\Router;
 
 use AdinanCenci\Router\Helper\Server;
+use AdinanCenci\Router\Routes\RouteCollection;
+use AdinanCenci\Router\Routes\Route;
 
 use AdinanCenci\Psr17\ServerRequestFactory;
 use AdinanCenci\Psr17\ResponseFactory;
@@ -19,23 +21,23 @@ class Router implements RequestHandlerInterface
      */
     protected string $baseDirectory;
 
-    /** @var AdinanCenci\Router\MiddlewareCallback[] */
-    protected array $middlewares = [];
+    /** @var AdinanCenci\Router\Routes\RouteCollection */
+    protected $middlewareCollection;
 
-    /** @var AdinanCenci\Router\MiddlewareCallback[] */
+    /** @var AdinanCenci\Router\Routes\RouteCollection */
+    protected $routeCollection;
+
+    /** @var AdinanCenci\Router\Middleware[] */
     protected ?array $matchingMiddlewares = null;
-
-    /** @var AdinanCenci\Router\RouteCallback[] */
-    protected array $routes = [];
 
     protected $responseFactory;
 
     protected $streamFactory;
 
     /**
-     * @param string|null $baseDirectory 
-     *   Path to the router's base directory. If not informed, the current 
-     *   file's parent directory will be used.
+     * @param string|null $baseDirectory
+     *   Absolute path. If not informed, the current file's parent directory 
+     *   will be used.
      */
     public function __construct(?string $baseDirectory = null) 
     {
@@ -45,52 +47,44 @@ class Router implements RequestHandlerInterface
 
         $this->responseFactory = new ResponseFactory();
         $this->streamFactory = new StreamFactory();
+
+        $this->middlewareCollection = new RouteCollection();
+        $this->routeCollection = new RouteCollection();
     }
 
     public function __get($var) 
     {
-        return $this->{$var};
+        switch ($var) {
+            case 'responseFactory':
+            case 'streamFactory':
+                return $this->{$var};
+                break;
+        }
+
+        return null;
     }
 
-    /**
-     * Adds a new route to the router.
-     * 
-     * @param string|string[] $methods
-     *   The http methods ( get, post, put etc ) in the form of a "|" 
-     *   separated string or an array.
-     * @param string|string[] $patterns 
-     *   Regex expressions to match against the URI's path.
-     * @param mixed $callable 
-     *   An anonymous function, the name of a function, the method of a class, 
-     *   an object and its method, an instance of 
-     *   Psr\Http\Server\MiddlewareInterface or even the path to a file.
-     * 
-     * @return self
-     */
-    public function add($methods = '*', $patterns, $callable) 
+    public function addRoute(Route $route, $routeName = null) 
     {
-        $this->routes[] = new RouteCallback($methods, $patterns, $callable);
+        $this->routeCollection->addRoute($route, $routeName);
         return $this;
     }
 
-    /**
-     * Adds a new middleware to the router.
-     * 
-     * @param string|string[] $methods
-     *   The http methods ( get, post, put etc ) in the form of a "|" 
-     *   separated string or an array.
-     * @param string|string[] $patterns 
-     *   Regex expressions to match against the URI's path.
-     * @param mixed $callable 
-     *   An anonymous function, the name of a function, the method of a class, 
-     *   an object and its method, an instance of 
-     *   Psr\Http\Server\MiddlewareInterface or even the path to a file.
-     * 
-     * @return self
-     */
-    public function addMiddleware($methods = '*', $patterns, $callable) 
+    public function add($methods, string $pattern, $callable, $routeName = null) 
     {
-        $this->middlewares[] = new MiddlewareCallback($methods, $patterns, $callable);
+        $this->addRoute(new Route($methods, $pattern, $callable), $routeName);
+        return $this;
+    }
+
+    public function addMiddleware(Route $route) 
+    {
+        $this->middlewareCollection->addRoute($route, null);
+        return $this;
+    }
+
+    public function middleware($methods, string $pattern, $callable) 
+    {
+        $this->addMiddleware(new Route($methods, $pattern, $callable));
         return $this;
     }
 
@@ -186,38 +180,15 @@ class Router implements RequestHandlerInterface
         return $response;
     }
 
-    /**
-     * Will return an array of matching callbacks.
-     * 
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     * @param string $pathOverride To override the request's path.
-     * 
-     * @return AdinanCenci\Router\MiddlewareCallback[]
-     */
-    protected function getMatchingMiddlewares(ServerRequestInterface $request, ?string $pathOverride = null) : array
+    protected function getMatchingRoute(ServerRequestInterface $request, ?string $pathOverride = null) : ?Route 
     {
-        return array_filter($this->middlewares, function($callback) use($request, $pathOverride) 
-        {
-            return $callback->doesItMatcheRequest($request, $pathOverride);
-        });
+        $routes = $this->routeCollection->getMatchingRoutes($request, $pathOverride);
+        return $routes ? reset($routes) : null;
     }
 
-    /**
-     * Will return an array of matching callbacks.
-     * 
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     * @param string $pathOverride To override the request's path.
-     * 
-     * @return AdinanCenci\Router\Callback
-     */
-    protected function getMatchingRoute(ServerRequestInterface $request, ?string $pathOverride = null) : ?RouteCallback
+    protected function getMatchingMiddlewares(ServerRequestInterface $request, ?string $pathOverride = null) : array
     {
-        $routes = array_filter($this->routes, function($callback) use($request, $pathOverride) 
-        {
-            return $callback->doesItMatcheRequest($request, $pathOverride);
-        });
-
-        return $routes ? reset($routes) : null;
+        return $this->middlewareCollection->getMatchingRoutes($request, $pathOverride);
     }
 
     /**
@@ -242,6 +213,6 @@ class Router implements RequestHandlerInterface
     protected function error404(ServerRequestInterface $request) : ResponseInterface
     {
         return $this->responseFactory->createResponse(404, 'Zoinks, Nothing found')
-        ->withBody( $this->streamFactory->createStream('this is the home page') );
+        ->withBody( $this->streamFactory->createStream('Nothing found') );
     }
 }
