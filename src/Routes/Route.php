@@ -98,9 +98,7 @@ class Route
             return null;
         }
 
-        $response = $handler->responseFactory->createResponse(200, '')->withBody(
-            $handler->streamFactory->createStream($contents)
-        );
+        $response = $handler->responseFactory->ok($contents);
 
         return $response;
     }

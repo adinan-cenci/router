@@ -104,7 +104,7 @@ class Router implements RequestHandlerInterface
     {
         $request = $request
             ? $request
-            : ServerRequestFactory::createFromGlobals();
+            : (new ServerRequestFactory())->createFromGlobals();
 
         $response = $this->handle($request);
 
@@ -232,7 +232,6 @@ class Router implements RequestHandlerInterface
      */
     protected function error404(ServerRequestInterface $request) : ResponseInterface
     {
-        return $this->responseFactory->createResponse(404, 'Zoinks, Nothing found')
-        ->withBody( $this->streamFactory->createStream('Nothing found') );
+        return $this->responseFactory->notFound('404 Nothing found');
     }
 }
