@@ -34,14 +34,13 @@ class Executor
             throw new \RuntimeException($file . ' is not a file.');
         }
 
-        extract($this->parameters);
-        return include $file;
+        return include($file);
     }
 
     protected function callString(string $string) 
     {
         if ($this->isValidMethodName($string)) {
-            $this->callMethodName();
+            return $this->callMethodName($string);
         }
 
         if ($this->isValidFunctionName($string)) {
@@ -55,8 +54,8 @@ class Executor
 
     protected function callFunctionName(string $functionName) 
     {
-        if (! function_exists($callFunctionName)) {
-            throw new \RuntimeException($callFunctionName . ' is undefined');
+        if (! function_exists($functionName)) {
+            throw new \RuntimeException($functionName . ' is undefined');
         }
 
         return call_user_func_array($functionName, $this->parameters);
@@ -80,9 +79,9 @@ class Executor
             throw new \RuntimeException($methodName . ' is not public');
         }
 
-        if ($this->isStaticMethod($class, $method)) {
-            return $this->callStaticMethod($class, $method);
-        }        
+        return $this->isStaticMethod($class, $method)
+            ? $this->callStaticMethod($class, $method)
+            : $this->callMethod($class, $method);
     }
 
     protected function callMethod(string $className, string $methodName) 
@@ -104,12 +103,12 @@ class Executor
 
     protected function isValidFunctionName(string $name) : bool 
     {
-        return preg_match('#^\\?[a-z][\w_\\]+$#', $name);
+        return preg_match('/^\\\?[a-z][\w_\\\]+$/i', $name);
     }
 
     protected function isValidMethodName(string $name) : bool 
     {
-        return preg_match('#^\\?[a-z][\w_\\]+::[a-z][\w_\\]+$#', $name);
+        return preg_match('/^\\\?[a-z][\w_\\\]+::[a-z][\w_\\\]+$/i', $name);
     }
 
     protected function attemptToInstantiate(string $className) 
@@ -117,7 +116,7 @@ class Executor
         $refClass = new \ReflectionClass($className);
         $rfConstructor = $refClass->getConstructor();
 
-        if ($rfConstructor->getNumberOfParameters()) {
+        if ($rfConstructor && $rfConstructor->getNumberOfParameters()) {
             throw new \RuntimeException($className . ': I do not know how to instantiate it');
         }
         

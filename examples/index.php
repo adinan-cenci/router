@@ -21,6 +21,9 @@ $router->add('get', '#named-function$#', 'namedFunction');
 
 $router->add('get', '#static-method$#', 'SomeClass::staticMethod');
 
+$router->add('get', '#method$#', 'SomeClass::method');
+
+$router->add('get', '#file$#', 'include/file.php');
 
 
 $router->middleware('*', '#^admin/?#', function($request, $handler) 

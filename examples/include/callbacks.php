@@ -11,4 +11,9 @@ class SomeClass
     {
         echo html('This is a static method');
     }
+
+    public function method($request, $handler) 
+    {
+        echo html('This is a method');
+    }
 }
