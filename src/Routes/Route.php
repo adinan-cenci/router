@@ -1,6 +1,8 @@
 <?php
 namespace AdinanCenci\Router\Routes;
 
+use AdinanCenci\Router\Helper\Executor;
+
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -66,26 +68,28 @@ class Route
     public function callIt(ServerRequestInterface $request, RequestHandlerInterface $handler) 
     {
         //preg_match($this->pathPattern, $path, $attributes);
-
         //$request = $request->withAttributes($attributes);
 
-        if ($this->callback instanceof MiddlewareInterface) {
-            return $this->callMiddleware($request, $handler);
-        }
-
-        return $this->callMethod($request, $handler);
-    }
+        return $this->callback instanceof MiddlewareInterface
+            ? $this->callMiddleware($request, $handler)
+            : $this->allTheRest($request, $handler);
+    }    
 
     protected function callMiddleware(ServerRequestInterface $request, RequestHandlerInterface $handler) : ResponseInterface
     {
         return $this->callback->process($request, $handler);
     }
 
-    protected function callMethod(ServerRequestInterface $request, RequestHandlerInterface $handler) : ?ResponseInterface
+    protected function allTheRest(ServerRequestInterface $request, RequestHandlerInterface $handler) : ?ResponseInterface
     {
         ob_start();
 
-        $response = call_user_func_array($this->callback, [$request, $handler]);
+        $executor = new Executor($this->callback, ['request' => $request, 'handler' => $handler]);
+        try {
+            $response = $executor->callIt();
+        } catch(\RuntimeException $e) {
+            $response = $handler->responseFactory->ok($contents, 'ERROR!!! ' . $e->getMessage());
+        }
 
         if ($response instanceof ResponseInterface) {
             ob_end_clean();
