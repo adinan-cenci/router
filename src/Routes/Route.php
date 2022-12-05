@@ -85,11 +85,11 @@ class Route
         ob_start();
 
         $executor = new Executor($this->callback, ['request' => $request, 'handler' => $handler]);
-        //try {
+        try {
             $response = $executor->callIt();
-        //} catch(\RuntimeException $e) {
-        //    $response = $handler->responseFactory->ok($contents, 'ERROR!!! ' . $e->getMessage());
-        //}
+        } catch(\RuntimeException $e) {
+            $response = $handler->responseFactory->ok('ERROR!!! ' . $e->getMessage());
+        }
 
         if ($response instanceof ResponseInterface) {
             ob_end_clean();

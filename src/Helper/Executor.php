@@ -63,6 +63,10 @@ class Executor
 
     protected function invokeClass(string $className) 
     {
+        if (! $this->methodExists($className, '__invoke')) {
+            throw new \RuntimeException($methodName . ' has no __invoke method');
+        }
+
         $instance = $this->attemptToInstantiate($className);
         call_user_func_array($instance, $this->parameters);
     }
@@ -113,13 +117,17 @@ class Executor
 
     protected function attemptToInstantiate(string $className) 
     {
+        if ($this->isAbstract($className)) {
+            throw new \RuntimeException($className . ' is abstract');
+        }
+
         $refClass = new \ReflectionClass($className);
         $rfConstructor = $refClass->getConstructor();
 
         if ($rfConstructor && $rfConstructor->getNumberOfParameters()) {
             throw new \RuntimeException($className . ': I do not know how to instantiate it');
         }
-        
+
         return new $className;
     }
 
