@@ -28,10 +28,12 @@ function html($html)
     </head>
     <nav>
         <div>
-            <a href="named-function">named function</a>
-            <a href="static-method">static method</a>
-            <a href="method">method</a>
+            <a href="an-anonymous-function">anonymous function</a>
+            <a href="a-named-function">named function</a>
+            <a href="a-static-method">static method</a>
+            <a href="the-method-of-a-class">method</a>
             <a href="__invoke">invoke</a>
+            <a href="an-object">an object</a>
             <a href="file">file</a>
         </div>
         <div>

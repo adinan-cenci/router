@@ -9,7 +9,7 @@ class SomeClass
 {
     public function __invoke($request, $handler) 
     {
-        echo html('This is an __invoke method');
+        echo html('Instantiating an object and invoking it');
     }
 
     public static function staticMethod($request, $handler) 
@@ -34,6 +34,6 @@ class AnotherClass
 
     public function __invoke($request, $handler) 
     {
-        echo html('This is an __invoke method');
+        echo html('Invoking an object');
     }
 }

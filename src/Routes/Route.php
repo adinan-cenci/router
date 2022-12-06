@@ -73,22 +73,24 @@ class Route
         return $this->callback instanceof MiddlewareInterface
             ? $this->callMiddleware($request, $handler)
             : $this->allTheRest($request, $handler);
-    }    
+    }
 
-    protected function callMiddleware(ServerRequestInterface $request, RequestHandlerInterface $handler) : ResponseInterface
+    protected function callMiddleware(ServerRequestInterface $request, RequestHandlerInterface $handler) 
     {
         return $this->callback->process($request, $handler);
     }
 
-    protected function allTheRest(ServerRequestInterface $request, RequestHandlerInterface $handler) : ?ResponseInterface
+    protected function allTheRest(ServerRequestInterface $request, RequestHandlerInterface $handler) 
     {
         ob_start();
 
         $executor = new Executor($this->callback, ['request' => $request, 'handler' => $handler]);
+
         try {
             $response = $executor->callIt();
         } catch(\RuntimeException $e) {
-            $response = $handler->responseFactory->ok('ERROR!!! ' . $e->getMessage());
+            return $e;
+            //$response = $handler->responseFactory->ok('ERROR!!! ' . $e->getMessage());
         }
 
         if ($response instanceof ResponseInterface) {
@@ -96,7 +98,9 @@ class Route
             return $response;
         }
 
-        $contents = $response ?? ob_get_clean();
+        $contents = is_string($response) && $response 
+            ? $response 
+            : ob_get_clean();
 
         $contents = $contents ?? 'EMPTY';
 

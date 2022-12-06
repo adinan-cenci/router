@@ -1,2 +1,2 @@
 <?php 
-return html('this is a file');
+echo html('this is a file');

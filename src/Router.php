@@ -36,6 +36,8 @@ class Router implements RequestHandlerInterface
 
     protected $streamFactory;
 
+    protected $exceptionHandler;
+
     /**
      * @param string|null $baseDirectory
      *   Absolute path. If not informed, the current file's parent directory 
@@ -52,6 +54,11 @@ class Router implements RequestHandlerInterface
 
         $this->middlewareCollection = new RouteCollection();
         $this->routeCollection      = new RouteCollection();
+
+        $this->exceptionHandler = function($handler, $exception) 
+        {
+            return $handler->responseFactory->ok('ERROR!!! ' . $exception->getMessage());
+        };
     }
 
     public function __get($var) 
@@ -64,6 +71,11 @@ class Router implements RequestHandlerInterface
         }
 
         return null;
+    }
+
+    public function setExceptionHandler($handler) 
+    {
+        $this->exceptionHandler = $handler;
     }
 
     public function addRoute(Route $route, $routeName = null) 
@@ -179,7 +191,18 @@ class Router implements RequestHandlerInterface
         }
 
         $response = $route->callIt($request, $handler);
+
+        if ($response instanceof \RuntimeException) {
+            return $this->handleException($response);
+        }
+
         return $response;
+    }
+
+    protected function handleException($exception) 
+    {
+        $function = $this->exceptionHandler;
+        return $function($this, $exception);
     }
 
     protected function getMatchingRoute(ServerRequestInterface $request, ?string $pathOverride = null) : ?Route 
