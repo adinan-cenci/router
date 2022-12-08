@@ -24,6 +24,8 @@ class Executor
         if (is_callable($this->callback)) {
             return call_user_func_array($this->callback, $this->parameters);
         }
+
+        var_dump($this->callback);
     }
 
     //------------------------------------------------------

@@ -57,7 +57,7 @@ class Router implements RequestHandlerInterface
 
         $this->exceptionHandler = function($handler, $exception) 
         {
-            return $handler->responseFactory->ok('ERROR!!! ' . $exception->getMessage());
+            return $handler->responseFactory->internalServerError('<h1>Error</h1>' . $exception->getMessage());
         };
     }
 

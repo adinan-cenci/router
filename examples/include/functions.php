@@ -30,24 +30,25 @@ function html($html)
         <div>
             <a href="an-anonymous-function">anonymous function</a>
             <a href="a-named-function">named function</a>
+            <a href="the-method-of-a-class">the method of a class</a>
             <a href="a-static-method">static method</a>
-            <a href="the-method-of-a-class">method</a>
-            <a href="__invoke">invoke</a>
+            <a href="just-a-class">invoke</a>
             <a href="an-object">an object</a>
-            <a href="file">file</a>
+            <a href="the-method-of-an-object">the method of an object</a>
+            <a href="a-file">a file</a>
         </div>
         <div>
-            <a href="non-existing-function">non existing unction</a>
-            <a href="undefined-static-method">undefined static method</a>
-            <a href="protected-method">protected-method</a>
-            <a href="class-with-dependencies">class with dependencies</a>
+            <a href="a-non-existing-function">a non existing unction</a>
+            <a href="an-undefined-method">undefined static method</a>
+            <a href="a-protected-method">protected-method</a>
+            <a href="a-class-with-dependencies">class with dependencies</a>
             
         </div>
     </nav>
     <body>'.$html.'</body></html>';
 }
 
-function userIsLoggedIn() 
+function userIsLoggedIn($request) 
 {
-    return false;
+    return !empty($_SESSION['username']);
 }
