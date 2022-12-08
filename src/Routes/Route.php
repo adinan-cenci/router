@@ -102,10 +102,11 @@ class Route
             ? $response 
             : ob_get_clean();
 
-        $contents = $contents ?? 'EMPTY';
+        if ($contents === '' || $contents === null) {
+            return null;
+        }
 
         $response = $handler->responseFactory->ok($contents);
-
         return $response;
     }
 }

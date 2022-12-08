@@ -45,8 +45,6 @@ class AnotherClass
 
 function loginPage($request, $handler) 
 {
-    var_dump($request->getParsedBody());
-
     $username = $request->getParsedBody()['username'] ?? '';
     $password = $request->getParsedBody()['password'] ?? '';
 
@@ -64,4 +62,16 @@ function loginPage($request, $handler)
     <label>Password:</label><input type="password" name="password"/><br>
     <input type="submit" value="Login"/>
     </form>');
+}
+
+function adminPage($request, $handler) 
+{
+    return html('Admin page <br> <a href="' . $handler->getUrl('logout') . '">logout</a>');
+}
+
+function logoutPage($request, $handler) 
+{
+    unset($_SESSION['username']);
+    return $handler->responseFactory
+    ->movedTemporarily($handler->getUrl('login'));
 }

@@ -114,9 +114,9 @@ class Router implements RequestHandlerInterface
      */
     public function run(?ServerRequestInterface $request = null) : void
     {
-        $request = $request
-            ? $request
-            : (new ServerRequestFactory())->createFromGlobals();
+        if (!$request) {
+            $request = (new ServerRequestFactory())->createFromGlobals();
+        }
 
         $response = $this->handle($request);
 

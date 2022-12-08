@@ -1,6 +1,7 @@
 <?php 
 use \AdinanCenci\Router\Router;
 
+session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 require '../vendor/autoload.php';
@@ -47,9 +48,13 @@ $router->middleware('*', '#^admin/?#', function($request, $handler)
         return $handler->responseFactory
         ->movedTemporarily($handler->getUrl('login'));
     }
+
+    //return $handler->handle($request);
 });
 
 $router->add('*', '#^login$#', 'loginPage');
+$router->add('*', '#^logout$#', 'logoutPage');
+$router->add('*', '#^admin$#', 'adminPage');
 
 
 $router->run();
