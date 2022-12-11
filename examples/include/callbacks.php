@@ -45,15 +45,18 @@ class AnotherClass
 
 function loginPage($request, $handler) 
 {
+    if (userIsLoggedIn($request)) {
+        return $handler->responseFactory
+        ->movedTemporarily($handler->getUrl('admin'));
+    }
+
     $username = $request->getParsedBody()['username'] ?? '';
     $password = $request->getParsedBody()['password'] ?? '';
 
-    if (!empty($username)) {
-        $_SESSION['username'] = $username;
-        $_SESSION['password'] = $password;
-
+    if (! empty($username)) {
         return $handler->responseFactory
-        ->movedTemporarily($handler->getUrl('admin'));
+        ->movedTemporarily($handler->getUrl('admin'))
+        ->withAddedCookie('loggedIn', 'true');
     }
 
     return html(
@@ -71,7 +74,7 @@ function adminPage($request, $handler)
 
 function logoutPage($request, $handler) 
 {
-    unset($_SESSION['username']);
     return $handler->responseFactory
-    ->movedTemporarily($handler->getUrl('login'));
+    ->movedTemporarily($handler->getUrl('login'))
+    ->withAddedCookie('loggedIn', 'false', -1);
 }

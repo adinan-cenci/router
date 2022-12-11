@@ -50,5 +50,5 @@ function html($html)
 
 function userIsLoggedIn($request) 
 {
-    return !empty($_SESSION['username']);
+    return isset($request->getCookieParams()['loggedIn']);
 }
