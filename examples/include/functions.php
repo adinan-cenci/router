@@ -35,6 +35,7 @@ function html($html)
             <a href="just-a-class">invoke</a>
             <a href="an-object">an object</a>
             <a href="the-method-of-an-object">the method of an object</a>
+            <a href="a-middleware">a middleware</a>
             <a href="a-file">a file</a>
         </div>
         <div>

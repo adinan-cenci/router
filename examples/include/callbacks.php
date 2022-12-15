@@ -1,4 +1,7 @@
 <?php 
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 function namedFunction($request, $handler) 
 {
@@ -77,4 +80,12 @@ function logoutPage($request, $handler)
     return $handler->responseFactory
     ->movedTemporarily($handler->getUrl('login'))
     ->withAddedCookie('loggedIn', 'false', -1);
+}
+
+class Middleware implements \Psr\Http\Server\MiddlewareInterface 
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        return $handler->responseFactory->ok(html('This is a middleware'));
+    }
 }
