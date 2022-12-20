@@ -1,5 +1,5 @@
 <?php
-namespace AdinanCenci\Router\Routes;
+namespace AdinanCenci\Router\Routing;
 
 use Psr\Http\Message\ServerRequestInterface;
 

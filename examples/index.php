@@ -24,7 +24,7 @@ $router = new Router();
 require 'include/callbacks.php';
 
 
-// Ok, what can I add as callbacks to the router ?
+// Ok, what can I add as a controller to the router ?
 $router->add('get', '#^an-anonymous-function$#', function ($request, $handler) {
     echo html('This is an anonymous function');
 });
@@ -36,8 +36,7 @@ $router->add('get', '#^an-object$#', ($object = new AnotherClass('foo', 'bar')))
 $router->add('get', '#^the-method-of-an-object$#', [$object, 'method']);
 $router->add('get', '#^a-file$#', 'include/file.php');
 $router->add('get', '#^a-middleware$#', (new Middleware())); // a PSR-15 middleware, of course.
-
-
+$router->add('get', '#^$#', function() { return html(); });
 
 /************************************************************
 **** Middlewares

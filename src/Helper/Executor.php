@@ -1,6 +1,8 @@
 <?php 
 namespace AdinanCenci\Router\Helper;
 
+use AdinanCenci\Router\Exception\CallbackException;
+
 class Executor 
 {
     protected $callback;
@@ -25,7 +27,7 @@ class Executor
             return call_user_func_array($this->callback, $this->parameters);
         }
 
-        var_dump($this->callback);
+        throw new CallbackException('Could not execute the callback.');
     }
 
     //------------------------------------------------------
@@ -33,14 +35,16 @@ class Executor
     protected function callFile(string $file) 
     {
         if (! is_file($file)) {
-            throw new \RuntimeException($file . ' is not a file.');
+            throw new CallbackException($file . ' is not a file.');
         }
 
+        extract($this->parameters);
         return include($file);
     }
 
     protected function callString(string $string) 
     {
+        // ClassName::methodName
         if ($this->isValidMethodName($string)) {
             return $this->callMethodName($string);
         }
@@ -51,13 +55,13 @@ class Executor
                 : $this->callFunctionName($string);
         }
 
-        throw new \RuntimeException($string . ': unable to execute callback');
+        throw new CallbackException($string . ': unable to execute callback');
     }
 
     protected function callFunctionName(string $functionName) 
     {
         if (! function_exists($functionName)) {
-            throw new \RuntimeException($functionName . ' is undefined');
+            throw new CallbackException($functionName . ' is undefined');
         }
 
         return call_user_func_array($functionName, $this->parameters);
@@ -66,11 +70,11 @@ class Executor
     protected function invokeClass(string $className) 
     {
         if (! $this->methodExists($className, '__invoke')) {
-            throw new \RuntimeException($methodName . ' has no __invoke method');
+            throw new CallbackException($methodName . ' has no __invoke method');
         }
 
         $instance = $this->attemptToInstantiate($className);
-        call_user_func_array($instance, $this->parameters);
+        return call_user_func_array($instance, $this->parameters);
     }
 
     protected function callMethodName(string $methodName) 
@@ -78,11 +82,11 @@ class Executor
         list($class, $method) = $this->separateClassAndMethod($methodName);
 
         if (! $this->methodExists($class, $method)) {
-            throw new \RuntimeException($methodName . ' is undefined');
+            throw new CallbackException($methodName . ' is undefined');
         }
 
         if (! $this->isPublicMethod($class, $method)) {
-            throw new \RuntimeException($methodName . ' is not public');
+            throw new CallbackException($methodName . ' is not public');
         }
 
         return $this->isStaticMethod($class, $method)
@@ -100,7 +104,6 @@ class Executor
     {
         return call_user_func_array([$className, $methodName], $this->parameters);
     }
-
 
     protected function separateClassAndMethod(string $methodName) : array
     {
@@ -120,14 +123,14 @@ class Executor
     protected function attemptToInstantiate(string $className) 
     {
         if ($this->isAbstract($className)) {
-            throw new \RuntimeException($className . ' is abstract');
+            throw new CallbackException($className . ' is abstract');
         }
 
         $refClass = new \ReflectionClass($className);
         $rfConstructor = $refClass->getConstructor();
 
-        if ($rfConstructor && $rfConstructor->getNumberOfParameters()) {
-            throw new \RuntimeException($className . ': I do not know how to instantiate it');
+        if ($rfConstructor && $rfConstructor->getNumberOfParameters() > 0) {
+            throw new CallbackException($className . ': I do not know how to instantiate it');
         }
 
         return new $className;

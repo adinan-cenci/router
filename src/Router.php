@@ -2,8 +2,9 @@
 namespace AdinanCenci\Router;
 
 use AdinanCenci\Router\Helper\Server;
-use AdinanCenci\Router\Routes\RouteCollection;
-use AdinanCenci\Router\Routes\Route;
+use AdinanCenci\Router\Routing\RouteCollection;
+use AdinanCenci\Router\Routing\Route;
+use AdinanCenci\Router\Exception\CallbackException;
 
 use AdinanCenci\Psr7\Uri;
 use AdinanCenci\Psr17\ServerRequestFactory;
@@ -23,17 +24,19 @@ class Router implements RequestHandlerInterface
      */
     protected string $baseDirectory;
 
-    /** @var AdinanCenci\Router\Routes\RouteCollection */
+    /** @var AdinanCenci\Router\Routing\RouteCollection */
     protected $middlewareCollection;
 
-    /** @var AdinanCenci\Router\Routes\RouteCollection */
+    /** @var AdinanCenci\Router\Routing\RouteCollection */
     protected $routeCollection;
 
-    /** @var AdinanCenci\Router\Middleware[] */
+    /** @var AdinanCenci\Router\Routing\Route[] */
     protected ?array $matchingMiddlewares = null;
 
+    /** @var AdinanCenci\Psr17\ResponseFactory */
     protected $responseFactory;
 
+    /** @var AdinanCenci\Psr17\StreamFactory */
     protected $streamFactory;
 
     protected $exceptionHandler;
@@ -78,15 +81,16 @@ class Router implements RequestHandlerInterface
         $this->exceptionHandler = $handler;
     }
 
-    public function addRoute(Route $route, $routeName = null) 
+    public function addRoute(Route $route, ?string $routeName = null) 
     {
         $this->routeCollection->addRoute($route, $routeName);
         return $this;
     }
 
-    public function add($methods, string $pattern, $callable, $routeName = null) 
+    public function add($methods, string $pattern, $callable, ?string $routeName = null) 
     {
-        $this->addRoute(new Route($methods, $pattern, $callable), $routeName);
+        $route = new Route($methods, $pattern, $callable);
+        $this->addRoute($route, $routeName);
         return $this;
     }
 
@@ -98,7 +102,8 @@ class Router implements RequestHandlerInterface
 
     public function middleware($methods, string $pattern, $callable) 
     {
-        $this->addMiddleware(new Route($methods, $pattern, $callable));
+        $middleware = new Route($methods, $pattern, $callable);
+        $this->addMiddleware($middleware);
         return $this;
     }
 
@@ -114,9 +119,9 @@ class Router implements RequestHandlerInterface
      */
     public function run(?ServerRequestInterface $request = null) : void
     {
-        if (!$request) {
-            $request = (new ServerRequestFactory())->createFromGlobals();
-        }
+        $request = $request
+            ? $request
+            : (new ServerRequestFactory())->createFromGlobals();
 
         $response = $this->handle($request);
 
@@ -184,22 +189,25 @@ class Router implements RequestHandlerInterface
 
     protected function handleRoutes($request, $pathOverride) 
     {
-        $handler = $this;
         $route = $this->getMatchingRoute($request, $pathOverride);
         if (! $route) {
-            return $this->error404($request, $handler);
+            return $this->error404($request, $this, $pathOverride);
         }
 
-        $response = $route->callIt($request, $handler);
+        try {
+            $response = $route->callIt($request, $this);
+        } catch (CallbackException $e) {
+            $response = $e;
+        }
 
-        if ($response instanceof \RuntimeException) {
+        if ($response instanceof CallbackException) {
             return $this->handleException($response);
         }
 
         return $response;
     }
 
-    protected function handleException($exception) 
+    protected function handleException(\Exception $exception) 
     {
         $function = $this->exceptionHandler;
         return $function($this, $exception);
@@ -208,7 +216,10 @@ class Router implements RequestHandlerInterface
     protected function getMatchingRoute(ServerRequestInterface $request, ?string $pathOverride = null) : ?Route 
     {
         $routes = $this->routeCollection->getMatchingRoutes($request, $pathOverride);
-        return $routes ? reset($routes) : null;
+
+        return $routes 
+            ? reset($routes) 
+            : null;
     }
 
     protected function getMatchingMiddlewares(ServerRequestInterface $request, ?string $pathOverride = null) : array
@@ -253,8 +264,8 @@ class Router implements RequestHandlerInterface
      * 
      * @return Psr\Http\Message\ResponseInterface
      */
-    protected function error404(ServerRequestInterface $request) : ResponseInterface
+    protected function error404(ServerRequestInterface $request, $handler, $pathOverride = null) : ResponseInterface
     {
-        return $this->responseFactory->notFound('404 Nothing found');
+        return $this->responseFactory->notFound('404 Nothing found related to "' . $pathOverride . '"');
     }
 }

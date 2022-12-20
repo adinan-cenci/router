@@ -1,7 +1,8 @@
 <?php
-namespace AdinanCenci\Router\Routes;
+namespace AdinanCenci\Router\Routing;
 
 use AdinanCenci\Router\Helper\Executor;
+use AdinanCenci\Router\Exception\CallbackException;
 
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -53,8 +54,7 @@ class Route
     public function doesItMatcheRequest(ServerRequestInterface $request, ?string $pathOverride = null) : bool
     {
         $method  = strtoupper($request->getMethod());
-
-        $path    = $pathOverride
+        $path    = $pathOverride !== null
             ? $pathOverride 
             : $request->getUri()->getPath();
 
@@ -88,7 +88,7 @@ class Route
 
         try {
             $response = $executor->callIt();
-        } catch(\RuntimeException $e) {
+        } catch(CallbackException $e) {
             return $e;
             //$response = $handler->responseFactory->ok('ERROR!!! ' . $e->getMessage());
         }
