@@ -11,118 +11,185 @@ class Executor
 
     public function __construct($callback, array $parameters) 
     {
+        if ($this->isArrayOfStrings($callback)) {
+            $callback = implode('::', $callback);
+        }
+
         $this->callback   = $callback;
         $this->parameters = $parameters;
     }
 
     public function callIt() 
     {
-        if (is_string($this->callback)) {
-            return file_exists($this->callback)
-                ? $this->callFile($this->callback)
-                : $this->callString($this->callback);
+        if ($this->isFile($this->callback)) {
+            return $this->includeFile();
         }
 
-        if (is_callable($this->callback)) {
-            return call_user_func_array($this->callback, $this->parameters);
+        if ($this->isClass($this->callback)) {
+            return $this->instantiateAndInvoke();
         }
 
-        throw new CallbackException('Could not execute the callback.');
+        if ($this->isStaticMethod($this->callback)) {
+            return $this->callStaticMethod();
+        }
+
+        if ($this->isMethod($this->callback)) {
+            return $this->instantiateAndCallMethod();
+        }
+
+        if ($this->isFunction($this->callback)) {
+            return $this->callFunction();
+        }
+        
+        if (is_object($this->callback)) {
+            return $this->invoke();
+        }
+
+        if ($this->isObjectAndMethod($this->callback)) {
+            return $this->callMethod();
+        }
+
+        throw new CallbackException('Could not execute the callback, it is either undefined or invalid.');
     }
 
-    //------------------------------------------------------
-
-    protected function callFile(string $file) 
+    protected function isFile($string) : bool
     {
-        if (! is_file($file)) {
-            throw new CallbackException($file . ' is not a file.');
-        }
+        return is_string($string) && file_exists($string) && is_file($string);
+    }
 
+    protected function includeFile() 
+    {
         extract($this->parameters);
-        return include($file);
+        return include($this->callback);
     }
 
-    protected function callString(string $string) 
+    protected function isClass($string) : bool
     {
-        // ClassName::methodName
-        if ($this->isValidMethodName($string)) {
-            return $this->callMethodName($string);
-        }
-
-        if ($this->isValidFunctionName($string)) {
-            return class_exists($string)
-                ? $this->invokeClass($string)
-                : $this->callFunctionName($string);
-        }
-
-        throw new CallbackException($string . ': unable to execute callback');
+        return is_string($string) && class_exists($string);
     }
 
-    protected function callFunctionName(string $functionName) 
+    protected function instantiateAndInvoke() 
     {
-        if (! function_exists($functionName)) {
-            throw new CallbackException($functionName . ' is undefined');
-        }
-
-        return call_user_func_array($functionName, $this->parameters);
+        $object = $this->attemptToInstantiate($this->callback);
+        return call_user_func_array($object, $this->parameters);
     }
 
-    protected function invokeClass(string $className) 
+    protected function isStaticMethod($string) : bool
     {
-        if (! $this->methodExists($className, '__invoke')) {
-            throw new CallbackException($methodName . ' has no __invoke method');
+        if (! is_string($string)) {
+            return false;
         }
 
-        $instance = $this->attemptToInstantiate($className);
-        return call_user_func_array($instance, $this->parameters);
+        list($class, $method) = explode('::', $string) + [null, null];
+
+        if (! class_exists($class)) {
+            return false;
+        }
+
+        $refClass = new \ReflectionClass($class);
+
+        return $refClass->hasMethod($method)
+            ? $refClass->getMethod($method)->isStatic()
+            : false;
     }
 
-    protected function callMethodName(string $methodName) 
+    protected function callStaticMethod() 
     {
-        list($class, $method) = $this->separateClassAndMethod($methodName);
+        list($class, $method) = explode('::', $this->callback);
 
-        if (! $this->methodExists($class, $method)) {
-            throw new CallbackException($methodName . ' is undefined');
-        }
+        $refMethod = new \ReflectionMethod($class, $method);
 
-        if (! $this->isPublicMethod($class, $method)) {
+        if (! $refMethod->isPublic()) {
             throw new CallbackException($methodName . ' is not public');
         }
 
-        return $this->isStaticMethod($class, $method)
-            ? $this->callStaticMethod($class, $method)
-            : $this->callMethod($class, $method);
+        return call_user_func_array($this->callback, $this->parameters);
     }
 
-    protected function callMethod(string $className, string $methodName) 
+    protected function isMethod($string) : bool
     {
-        $instance = $this->attemptToInstantiate($className);
-        return call_user_func_array([$instance, $methodName], $this->parameters);
+        if (! is_string($string)) {
+            return false;
+        }
+
+        list($class, $method) = explode('::', $string) + [null, null];
+
+        if (! class_exists($class)) {
+            return false;
+        }
+
+        $refClass = new \ReflectionClass($class);
+
+        return $refClass->hasMethod($method)
+            ? !$refClass->getMethod($method)->isStatic()
+            : false;
     }
 
-    protected function callStaticMethod(string $className, string $methodName) 
+    protected function instantiateAndCallMethod() 
     {
-        return call_user_func_array([$className, $methodName], $this->parameters);
+        list($class, $method) = explode('::', $this->callback);
+
+        $object = $this->attemptToInstantiate($class);
+
+        $reflMethod = new \ReflectionMethod($object, $method);
+
+        if (! $reflMethod->isPublic()) {
+            throw new CallbackException($this->callback . ' is not public');
+        }
+
+        return call_user_func_array([$object, $method], $this->parameters);
     }
 
-    protected function separateClassAndMethod(string $methodName) : array
+    protected function isFunction($string) : bool 
     {
-        return explode('::', $methodName);
+        return is_string($string) && function_exists($string);
     }
 
-    protected function isValidFunctionName(string $name) : bool 
+    protected function callFunction() 
     {
-        return preg_match('/^\\\?[a-z][\w_\\\]+$/i', $name);
+        return call_user_func_array($this->callback, $this->parameters);
     }
 
-    protected function isValidMethodName(string $name) : bool 
+    protected function isObjectAndMethod($callback) 
     {
-        return preg_match('/^\\\?[a-z][\w_\\\]+::[a-z][\w_\\\]+$/i', $name);
+        if (! is_array($callback)) {
+            return false;
+        }
+
+        $object = reset($callback);
+
+        if (! is_object($object)) {
+            return false;
+        }
+
+        $method = end($callback);
+
+        return is_string($method) && method_exists($object, $method);
+    }
+
+    protected function callMethod() 
+    {
+        list($object, $method) = $this->callback;
+
+        $reflMethod = new \ReflectionMethod($object, $method);
+
+        if (! $reflMethod->isPublic()) {
+            throw new CallbackException(get_class($object) . '::' . $method . ' is not public');
+        }
+
+        return call_user_func_array([$object, $method], $this->parameters);
+    }
+
+    protected function invoke() 
+    {
+        return call_user_func_array($this->callback, $this->parameters);
     }
 
     protected function attemptToInstantiate(string $className) 
     {
-        if ($this->isAbstract($className)) {
+        $refClass = new \ReflectionClass($className);
+
+        if ($refClass->isAbstract()) {
             throw new CallbackException($className . ' is abstract');
         }
 
@@ -130,29 +197,19 @@ class Executor
         $rfConstructor = $refClass->getConstructor();
 
         if ($rfConstructor && $rfConstructor->getNumberOfParameters() > 0) {
-            throw new CallbackException($className . ': I do not know how to instantiate it');
+            throw new CallbackException($className . ': Class has dependencies that could not be resolved');
         }
 
         return new $className;
     }
 
-    protected function isAbstract(string $className) : bool
+    protected function isArrayOfStrings($var) : bool
     {
-        return (new \ReflectionClass($className))->isAbstract();
-    }
+        if (! is_array($var)) {
+            return false;
+        }
 
-    protected function methodExists($objectOrClass, string $methodName) : bool
-    {
-        return (new \ReflectionClass($objectOrClass))->hasMethod($methodName);
-    }
-
-    protected function isStaticMethod($objectOrClass, string $methodName) : bool
-    {
-        return (new \ReflectionMethod($objectOrClass, $methodName))->isStatic();
-    }
-
-    protected function isPublicMethod($objectOrClass, string $methodName) : bool
-    {
-        return (new \ReflectionMethod($objectOrClass, $methodName))->isPublic();
+        $filtered = array_filter($var, 'is_string');
+        return count($var) == count($filtered);
     }
 }

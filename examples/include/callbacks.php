@@ -5,7 +5,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 function namedFunction($request, $handler) 
 {
-    echo html('This is a named function');
+    echo html('The router accepts named function, namespaced or not.');
 }
 
 class SomeClass 
@@ -17,12 +17,19 @@ class SomeClass
 
     public static function staticMethod($request, $handler) 
     {
-        echo html('This is a static method');
+        echo html("The router accept static methods. You may specify them in a 
+        single string: 'Namespace\Class::andEverything' or in an array: ['Namespace\Class', 'andMethod']");
     }
 
     public function method($request, $handler) 
     {
-        echo html('This is a method');
+        echo html('It works just like static methods: single string or arrays. The router will attempt to 
+        instantiate an object.');
+    }
+
+    public function methodOfAnObject($request, $handler) 
+    {
+        echo html("The router accepts an object and the method's name to be called.");
     }
 
     protected function protectedMethod($request, $handler) 
@@ -33,7 +40,7 @@ class SomeClass
 
 class AnotherClass 
 {
-    public function __construct($foo, $bar) {}
+    public function __construct($foo = 'foo', $bar = 'bar') {}
 
     public function __invoke($request, $handler) 
     {

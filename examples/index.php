@@ -3,16 +3,21 @@ use \AdinanCenci\Router\Router;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-(include_once('../vendor/autoload.php')) or die('We need an autoload file for the examples to work');
-include_once('include/functions.php');
+
+if (! file_exists('../vendor/autoload.php')) {
+    die('<h1>We need an autoload file for the examples to work.</h1>');
+}
+
+require '../vendor/autoload.php';
+require 'include/functions.php';
+require 'include/callbacks.php'; // Callbacks for this example are defined in this file.
+
 
 
 /************************************************************
 **** Instatiating
 ************************************************************/
-
 $router = new Router();
-
 
 
 
@@ -20,22 +25,21 @@ $router = new Router();
 **** Routes
 ************************************************************/
 
-// Callbacks for this example are defined in this file.
-require 'include/callbacks.php';
-
-
 // Ok, what can I add as a controller to the router ?
-$router->add('get', '#^an-anonymous-function$#', function ($request, $handler) {
-    echo html('This is an anonymous function');
+$router->add('get', '#^the-router/accepts/anonymous-functions$#', function ($request, $handler) {
+    echo html('You may add anonymous functions directly to the router.');
 });
-$router->add('get', '#^a-named-function$#', 'namedFunction');
-$router->add('get', '#^the-method-of-a-class$#', 'SomeClass::method'); // The router will attempt to instantiate an object.
-$router->add('get', '#^a-static-method$#', 'SomeClass::staticMethod');
-$router->add('get', '#^just-a-class$#', 'SomeClass'); // The router will attempt to instantiate an object and call __invoke.
-$router->add('get', '#^an-object$#', ($object = new AnotherClass('foo', 'bar'))); // The router will call __invoke.
-$router->add('get', '#^the-method-of-an-object$#', [$object, 'method']);
-$router->add('get', '#^a-file$#', 'include/file.php');
-$router->add('get', '#^a-middleware$#', (new Middleware())); // a PSR-15 middleware, of course.
+$router->add('get', '#^the-router/accepts/named-functions$#', 'namedFunction');
+$router->add('get', '#^the-router/accepts/static-methods$#', 'SomeClass::staticMethod');
+$router->add('get', '#^the-router/accepts/methods$#', 'SomeClass::method'); // The router will attempt to instantiate an object.
+
+$router->add('get', '#^the-router/accepts/objects$#', ($object = new AnotherClass('foo', 'bar'))); // The router will call __invoke.
+$router->add('get', '#^the-router/accepts/an-object-and-its-method$#', [$object, 'methodOfAnObject']);
+
+$router->add('get', '#^the-router/accepts/classes$#', 'SomeClass'); // The router will attempt to instantiate an object and call __invoke.
+
+$router->add('get', '#^the-router/accepts/psr-15-middlewares$#', (new Middleware())); // a PSR-15 middleware, of course.
+$router->add('get', '#^the-router/accepts/files$#', 'include/file.php');
 $router->add('get', '#^$#', function() { return html(); });
 
 /************************************************************
