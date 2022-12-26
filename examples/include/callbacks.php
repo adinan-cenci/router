@@ -3,33 +3,38 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+function homePage($request, $handler) 
+{
+    echo html('<h1>Router examples</h1>Here we will see some examples of how to use this library.');
+}
+
 function namedFunction($request, $handler) 
 {
-    echo html('The router accepts named function, namespaced or not.');
+    echo html('<h1>A named function</h1>The router accepts named function, namespaced or not.');
 }
 
 class SomeClass 
 {
     public function __invoke($request, $handler) 
     {
-        echo html('Instantiating an object and invoking it');
+        echo html('<h1>An object</h1>If you inform just an object, the router will attempt to call the <code>__invoke()</code> method.');
     }
 
     public static function staticMethod($request, $handler) 
     {
-        echo html("The router accept static methods. You may specify them in a 
-        single string: 'Namespace\Class::andEverything' or in an array: ['Namespace\Class', 'andMethod']");
+        echo html("<h1>A static method</h1>The router accept static methods. You may specify them in a 
+        single string: <code>'Namespace\Class::andMethod'</code> or in an array: <code>['Namespace\Class', 'andMethod']</code>");
     }
 
     public function method($request, $handler) 
     {
-        echo html('It works just like static methods: single string or arrays. The router will attempt to 
+        echo html('<h1>A public method</h1>It works just like static methods: single string or arrays. The router will attempt to 
         instantiate an object.');
     }
 
     public function methodOfAnObject($request, $handler) 
     {
-        echo html("The router accepts an object and the method's name to be called.");
+        echo html("<h1>An object and method</h1>The router accepts an object and the method to be called.");
     }
 
     protected function protectedMethod($request, $handler) 
@@ -40,17 +45,17 @@ class SomeClass
 
 class AnotherClass 
 {
-    public function __construct($foo = 'foo', $bar = 'bar') {}
-
     public function __invoke($request, $handler) 
     {
-        echo html('Invoking an object');
+        echo html('<h1>A class</h1>If you inform just name of the class, the router will attempt to instnatiate an object and call the <code>__invoke()</code> method.');
     }
+}
 
-    public function method($request, $handler) 
-    {
-        echo html('This is a method');
-    }
+class YetAnotherClass 
+{
+    public function __construct($foo, $bar) {}
+
+    public function __invoke() {}
 }
 
 function loginPage($request, $handler) 
@@ -70,16 +75,17 @@ function loginPage($request, $handler)
     }
 
     return html(
-    '<form method="post" action="' . $handler->getUrl('login') . '">
-    <label>Username:</label><input type="text" name="username"/><br>
-    <label>Password:</label><input type="password" name="password"/><br>
-    <input type="submit" value="Login"/>
+    '<h1>Login</h1>
+    <form method="post" action="' . $handler->getUrl('login') . '">
+        <label>Username:</label><input type="text" name="username"/><br>
+        <label>Password:</label><input type="password" name="password"/><br>
+        <input type="submit" value="Login"/>
     </form>');
 }
 
 function adminPage($request, $handler) 
 {
-    return html('Admin page <br> <a href="' . $handler->getUrl('logout') . '">logout</a>');
+    return html('<h1>Admin page</h1><a href="' . $handler->getUrl('logout') . '">logout</a>');
 }
 
 function logoutPage($request, $handler) 
@@ -93,6 +99,6 @@ class Middleware implements \Psr\Http\Server\MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        return $handler->responseFactory->ok(html('This is a middleware'));
+        return $handler->responseFactory->ok(html('<h1>PSR-15</h1>It accepts middleware objects as well.'));
     }
 }

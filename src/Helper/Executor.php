@@ -49,7 +49,7 @@ class Executor
             return $this->callMethod();
         }
 
-        throw new CallbackException('Could not execute the callback, it is either undefined or invalid.');
+        throw new CallbackException('Could not execute the callback, it is either undefined, does not exist or it is invalid.');
     }
 
     protected function isFile($string) : bool

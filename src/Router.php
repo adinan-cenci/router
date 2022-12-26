@@ -2,6 +2,7 @@
 namespace AdinanCenci\Router;
 
 use AdinanCenci\Router\Helper\Server;
+use AdinanCenci\Router\Helper\File;
 use AdinanCenci\Router\Routing\RouteCollection;
 use AdinanCenci\Router\Routing\Route;
 use AdinanCenci\Router\Exception\CallbackException;
@@ -41,6 +42,8 @@ class Router implements RequestHandlerInterface
 
     protected $exceptionHandler;
 
+    protected $notFoundHandler;
+
     /**
      * @param string|null $baseDirectory
      *   Absolute path. If not informed, the current file's parent directory 
@@ -50,7 +53,7 @@ class Router implements RequestHandlerInterface
     {
         $this->baseDirectory = $baseDirectory
             ? File::trailingSlash(File::forwardSlash($baseDirectory))
-            : Server::getCurrentFileParentDirectory();
+            : File::getParentDirectory(Server::getCurrentFile());
 
         $this->responseFactory      = new ResponseFactory();
         $this->streamFactory        = new StreamFactory();
@@ -61,6 +64,11 @@ class Router implements RequestHandlerInterface
         $this->exceptionHandler = function($handler, $exception) 
         {
             return $handler->responseFactory->internalServerError('<h1>Error</h1>' . $exception->getMessage());
+        };
+
+        $this->notFoundHandler = function($request, $handler, $pathOverride) 
+        {
+            return $handler->responseFactory->notFound('404 Nothing found related to "' . $pathOverride . '"');
         };
     }
 
@@ -79,6 +87,13 @@ class Router implements RequestHandlerInterface
     public function setExceptionHandler($handler) 
     {
         $this->exceptionHandler = $handler;
+        return $this;
+    }
+
+    public function setNotFoundHandler($handler) 
+    {
+        $this->notFoundHandler = $handler;
+        return $this;
     }
 
     public function addRoute(Route $route, ?string $routeName = null) 
@@ -266,6 +281,6 @@ class Router implements RequestHandlerInterface
      */
     protected function error404(ServerRequestInterface $request, $handler, $pathOverride = null) : ResponseInterface
     {
-        return $this->responseFactory->notFound('404 Nothing found related to "' . $pathOverride . '"');
+        return call_user_func_array($this->notFoundHandler, [$request, $handler, $pathOverride]);
     }
 }

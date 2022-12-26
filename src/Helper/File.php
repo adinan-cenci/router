@@ -3,6 +3,11 @@ namespace AdinanCenci\Router\Helper;
 
 abstract class File 
 {
+    public static function getParentDirectory(string $path) : string
+    {
+        return File::trailingSlash(dirname($path));
+    }
+
     public static function isRelativePath(string $path) : bool
     {
         if ($path == '') {

@@ -90,7 +90,6 @@ class Route
             $response = $executor->callIt();
         } catch(CallbackException $e) {
             return $e;
-            //$response = $handler->responseFactory->ok('ERROR!!! ' . $e->getMessage());
         }
 
         if ($response instanceof ResponseInterface) {

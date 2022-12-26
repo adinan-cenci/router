@@ -7,50 +7,64 @@ function html($html = '')
     <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
-    body{font-family: Roboto, sans-serif; margin: 0px; background: black; color: white;}
-    nav {
-        margin-bottom: 20px;
-    }
-    nav div {
+    body{margin: 0px; font-family: Roboto, sans-serif; background: black; color: white;}
+    
+    
+    .layout {
         display: flex;
     }
-    nav a {
-        flex-grow: 1;
+    .region {
         display: block;
-        padding: 10px 20px;
-        text-align: center;
-        color: white;
-        background: rgba(255, 255, 255, 0.1);
-    }
-    nav a:nth-child(2n+1) {
-        background: rgba(255, 255, 255, 0.15);
+        padding: 10px;
     }
 
+    main {
+        flex-grow: 1;
+    }
+
+    .menu {
+        width: 260px;
+    }
+
+    .menu ul {
+        margin: 0px;
+        padding: 0px 0px 0px 16px;
+    }
     </style>
     </head>
-    <nav>        
-        <div>
-            <a href="a-non-existing-function">a non existing unction</a>
-            <a href="an-undefined-method">undefined static method</a>
-            <a href="a-protected-method">protected-method</a>
-            <a href="a-class-with-dependencies">class with dependencies</a>
-            
-        </div>
-    </nav>
-    <ul>
-        <li><a href="' . $router->getUrl('the-router/accepts/anonymous-functions') . '">anonymous function</a></li>
-        <li><a href="' . $router->getUrl('the-router/accepts/named-functions') . '">named function</a></li>
-        <li><a href="' . $router->getUrl('the-router/accepts/static-methods') . '">static method</a></li>
-        <li><a href="' . $router->getUrl('the-router/accepts/methods') . '">method of a class</a></li>
-        <li><a href="' . $router->getUrl('the-router/accepts/an-object-and-its-method') . '">the method of an object</a></li>
-        <li><a href="' . $router->getUrl('the-router/accepts/objects') . '">objects</a></li>        
-        <li><a href="' . $router->getUrl('the-router/accepts/classes') . '">invoke</a></li>
-        
-        <li><a href="' . $router->getUrl('the-router/accepts/psr-15-middlewares') . '">a middleware</a></li>
-        <li><a href="' . $router->getUrl('the-router/accepts/files') . '">a file</a></li>
-    </ul>
+    <body>
+        <div class="layout">
+            <div class="region menu">
+                <p>What will work:</p>
+                <ul>
+                    <li><a href="' . $router->getUrl('the-router/accepts/anonymous-functions') . '">anonymous function</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/named-functions') . '">named function</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/static-methods') . '">static method</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/methods') . '">class and method name</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/an-object-and-its-method') . '">an object and a method</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/objects') . '">an object</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/classes') . '">a class</a></li>   
+                    <li><a href="' . $router->getUrl('the-router/accepts/psr-15-middlewares') . '">a middleware</a></li>
+                    <li><a href="' . $router->getUrl('the-router/accepts/files') . '">a file</a></li>
+                </ul>
+            </div>
 
-    <body>'.$html.'</body></html>';
+            <main class="region">
+                '.$html.'
+            </main>
+
+            <div class="region menu">
+                <p>What will not:</p>
+                <ul>
+                    <li><a href="' . $router->getUrl('the-router/will-not-accept/an-undefined-function') . '">undefined functions</a></li>
+                    <li><a href="' . $router->getUrl('the-router/will-not-accept/an-undefined-method') . '">undefined methods</a></li>
+                    <li><a href="' . $router->getUrl('the-router/will-not-accept/a-protected-method') . '">protected methods</a></li>
+                    <li><a href="' . $router->getUrl('the-router/will-not-accept/a-class-with-dependencies') . '">classes with dependencies</a></li>
+                </ul>
+            </div>
+        </div>
+    </body>
+    </html>';
 }
 
 

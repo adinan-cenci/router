@@ -27,20 +27,19 @@ $router = new Router();
 
 // Ok, what can I add as a controller to the router ?
 $router->add('get', '#^the-router/accepts/anonymous-functions$#', function ($request, $handler) {
-    echo html('You may add anonymous functions directly to the router.');
+    echo html('<h1>An anonymous function</h1>You may add anonymous functions directly to the router.');
 });
 $router->add('get', '#^the-router/accepts/named-functions$#', 'namedFunction');
 $router->add('get', '#^the-router/accepts/static-methods$#', 'SomeClass::staticMethod');
 $router->add('get', '#^the-router/accepts/methods$#', 'SomeClass::method'); // The router will attempt to instantiate an object.
-
-$router->add('get', '#^the-router/accepts/objects$#', ($object = new AnotherClass('foo', 'bar'))); // The router will call __invoke.
+$router->add('get', '#^the-router/accepts/objects$#', ($object = new SomeClass('foo', 'bar'))); // The router will call __invoke.
 $router->add('get', '#^the-router/accepts/an-object-and-its-method$#', [$object, 'methodOfAnObject']);
-
-$router->add('get', '#^the-router/accepts/classes$#', 'SomeClass'); // The router will attempt to instantiate an object and call __invoke.
-
+$router->add('get', '#^the-router/accepts/classes$#', 'AnotherClass'); // The router will attempt to instantiate an object and call __invoke.
 $router->add('get', '#^the-router/accepts/psr-15-middlewares$#', (new Middleware())); // a PSR-15 middleware, of course.
 $router->add('get', '#^the-router/accepts/files$#', 'include/file.php');
-$router->add('get', '#^$#', function() { return html(); });
+$router->add('get', '#^$#', 'homePage');
+
+
 
 /************************************************************
 **** Middlewares
@@ -54,8 +53,6 @@ $router->middleware('*', '#^admin/?#', function($request, $handler)
         return $handler->responseFactory
         ->movedTemporarily($handler->getUrl('login'));
     }
-
-    //return $handler->handle($request);
 });
 
 $router->add('*', '#^login$#', 'loginPage');
@@ -65,16 +62,26 @@ $router->add('*', '#^admin$#', 'adminPage');
 
 
 /************************************************************
+**** No router found
+************************************************************/
+
+// Customizing the 404 page
+$router->setNotFoundHandler(function($request, $handler, $pathOverride) 
+{
+    return $handler->responseFactory->notFound(html('<h1>404 Nothing found</h1>related to "' . $pathOverride . '"'));
+});
+
+
+
+/************************************************************
 **** Dealing with errors
 ************************************************************/
 
 // Now let's see some errors,
-$router->add('get', '#^a-non-existing-function$#', 'nonExistingFunction');
-$router->add('get', '#^an-undefined-method$#', 'SomeClass::undefinedMethod');
-$router->add('get', '#^a-protected-method$#', 'SomeClass::protectedMethod');
-$router->add('get', '#^a-class-with-dependencies$#', 'AnotherClass');
-
-
+$router->add('get', '#^the-router/will-not-accept/an-undefined-function$#', 'nonExistingFunction');
+$router->add('get', '#^the-router/will-not-accept/an-undefined-method$#', 'SomeClass::undefinedMethod');
+$router->add('get', '#^the-router/will-not-accept/a-protected-method$#', 'SomeClass::protectedMethod');
+$router->add('get', '#^the-router/will-not-accept/a-class-with-dependencies$#', 'YetAnotherClass');
 
 
 // How to handle exceptions
@@ -85,5 +92,8 @@ $router->setExceptionHandler(function($handler, $exception)
 
 
 
+/************************************************************
+**** Executing
+************************************************************/
 
 $router->run();

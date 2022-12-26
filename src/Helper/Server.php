@@ -4,18 +4,6 @@ namespace AdinanCenci\Router\Helper;
 abstract class Server 
 {
     /**
-     * Return the absolute path to the parent directory of the script 
-     * being executed.
-     * 
-     * @return string Absolute path
-     */
-    public static function getCurrentFileParentDirectory() : string 
-    {
-        $file = self::getCurrentFile();
-        return File::trailingSlash(dirname($file));
-    }
-
-    /**
      * Return the absolute path to the script being executed.
      * 
      * @return string Absolute path
