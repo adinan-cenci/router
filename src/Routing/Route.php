@@ -24,19 +24,19 @@ class Route
     protected string $pathPattern;
 
     /**
-     * @var mixed $callback
+     * @var mixed $controller
      *   An anonymous function, the name of a function, the method of a class, 
      *   an object and its method, an instance of 
      *   Psr\Http\Server\MiddlewareInterface or even the path to a file.
      */
-    protected $callback;
+    protected $controller;
 
     /**
      * @param string|string[] $methods
      * @param string $pathPattern
-     * @param mixed $callback
+     * @param mixed $controller
      */
-    public function __construct($methods, string $pathPattern, $callback) 
+    public function __construct($methods, string $pathPattern, $controller) 
     {
         if ($methods == '*') {
             $methods = 'GET|POST|PUT|DELETE|OPTIONS|PATCH';
@@ -48,14 +48,14 @@ class Route
 
         $this->methods      = array_map('strtoupper', (array) $methods);
         $this->pathPattern  = $pathPattern;
-        $this->callback     = $callback;
+        $this->controller   = $controller;
     }
 
-    public function doesItMatcheRequest(ServerRequestInterface $request, ?string $pathOverride = null) : bool
+    public function doesItMatcheRequest(ServerRequestInterface $request, ?string $path = null) : bool
     {
         $method  = strtoupper($request->getMethod());
-        $path    = $pathOverride !== null
-            ? $pathOverride 
+        $path    = $path !== null
+            ? $path 
             : $request->getUri()->getPath();
 
         if (! in_array($method, $this->methods)) {
@@ -70,21 +70,21 @@ class Route
         //preg_match($this->pathPattern, $path, $attributes);
         //$request = $request->withAttributes($attributes);
 
-        return $this->callback instanceof MiddlewareInterface
+        return $this->controller instanceof MiddlewareInterface
             ? $this->callMiddleware($request, $handler)
             : $this->allTheRest($request, $handler);
     }
 
     protected function callMiddleware(ServerRequestInterface $request, RequestHandlerInterface $handler) 
     {
-        return $this->callback->process($request, $handler);
+        return $this->controller->process($request, $handler);
     }
 
     protected function allTheRest(ServerRequestInterface $request, RequestHandlerInterface $handler) 
     {
         ob_start();
 
-        $executor = new Executor($this->callback, ['request' => $request, 'handler' => $handler]);
+        $executor = new Executor($this->controller, ['request' => $request, 'handler' => $handler]);
 
         try {
             $response = $executor->callIt();

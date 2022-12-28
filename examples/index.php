@@ -47,7 +47,7 @@ $router->add('get', '#^$#', 'homePage');
 
 // While only one router will be executed, all matching middlewares will have their turn,
 // unless if a middleware returns a response, then the router finishes earlier.
-$router->middleware('*', '#^admin/?#', function($request, $handler) 
+$router->before('*', '#^admin/?#', function($request, $handler) 
 {
     if (! userIsLoggedIn($request)) {
         return $handler->responseFactory
@@ -66,9 +66,9 @@ $router->add('*', '#^admin$#', 'adminPage');
 ************************************************************/
 
 // Customizing the 404 page
-$router->setNotFoundHandler(function($request, $handler, $pathOverride) 
+$router->setNotFoundHandler(function($request, $handler, $path) 
 {
-    return $handler->responseFactory->notFound(html('<h1>404 Nothing found</h1>related to "' . $pathOverride . '"'));
+    return $handler->responseFactory->notFound(html('<h1>404 Nothing found</h1>related to "' . $path . '"'));
 });
 
 
@@ -84,8 +84,9 @@ $router->add('get', '#^the-router/will-not-accept/a-protected-method$#', 'SomeCl
 $router->add('get', '#^the-router/will-not-accept/a-class-with-dependencies$#', 'YetAnotherClass');
 
 
+
 // How to handle exceptions
-$router->setExceptionHandler(function($handler, $exception) 
+$router->setExceptionHandler(function($request, $handler, $path, $exception) 
 {
     return $handler->responseFactory->internalServerError(html('<h1>Error</h1>' . $exception->getMessage()));
 });

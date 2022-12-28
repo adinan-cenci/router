@@ -11,7 +11,7 @@ class RouteCollection
      * @param AdinanCenci\Router\Routes\Route $route
      * @param string $routeName
      * 
-     * @return self
+     * @return $this
      */
     public function addRoute(Route $route, $routeName = null) 
     {
@@ -51,15 +51,15 @@ class RouteCollection
      * Will return an array of matching callbacks.
      * 
      * @param Psr\Http\Message\ServerRequestInterface $request
-     * @param string|null $pathOverride To override the request's path.
+     * @param string|null $path To override the request's path.
      * 
      * @return AdinanCenci\Router\Routes\Route[]
      */
-    public function getMatchingRoutes(ServerRequestInterface $request, ?string $pathOverride = null) : array
+    public function getMatchingRoutes(ServerRequestInterface $request, ?string $path = null) : array
     {
-        return array_filter($this->routes, function($callback) use($request, $pathOverride) 
+        return array_filter($this->routes, function($route) use($request, $path) 
         {
-            return $callback->doesItMatcheRequest($request, $pathOverride);
+            return $route->doesItMatcheRequest($request, $path);
         });
     }
 }

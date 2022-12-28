@@ -102,3 +102,5 @@ class Middleware implements \Psr\Http\Server\MiddlewareInterface
         return $handler->responseFactory->ok(html('<h1>PSR-15</h1>It accepts middleware objects as well.'));
     }
 }
+
+require 'callbacks2.php';

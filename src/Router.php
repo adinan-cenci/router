@@ -16,6 +16,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * @property-read AdinanCenci\Psr17\ResponseFactory $responseFactory
+ * @property-read AdinanCenci\Psr17\StreamFactory $streamFactory
+ */
 class Router implements RequestHandlerInterface 
 {
     /**
@@ -25,23 +29,42 @@ class Router implements RequestHandlerInterface
      */
     protected string $baseDirectory;
 
-    /** @var AdinanCenci\Router\Routing\RouteCollection */
-    protected $middlewareCollection;
+    /**
+     * @var string $defaultNamespace 
+     *   Default namespace for the controllers, just so we don't need to
+     *   write them repeteadely over and over.
+     */
+    protected string $defaultNamespace = '';
 
     /** @var AdinanCenci\Router\Routing\RouteCollection */
-    protected $routeCollection;
+    protected RouteCollection $middlewareCollection;
+
+    /** @var AdinanCenci\Router\Routing\RouteCollection */
+    protected RouteCollection $routeCollection;
 
     /** @var AdinanCenci\Router\Routing\Route[] */
     protected ?array $matchingMiddlewares = null;
 
     /** @var AdinanCenci\Psr17\ResponseFactory */
-    protected $responseFactory;
+    protected ResponseFactory $responseFactory;
 
     /** @var AdinanCenci\Psr17\StreamFactory */
-    protected $streamFactory;
+    protected StreamFactory $streamFactory;
 
+    /** 
+     * @var callable $exceptionHandler 
+     *   A function to deal with exceptions.
+     *   The callback function will receive 4 parameters:
+     *   callback(ServerRequestInterface $request, RequestHandlerInterface $handler, string $path, \Exception $exception)
+     */
     protected $exceptionHandler;
 
+    /** 
+     * @var callable $exceptionHandler 
+     *   A function to be called when no route is found.
+     *   The callback function will receive 3 parameters:
+     *   callback(ServerRequestInterface $request, RequestHandlerInterface $handler, string $path)
+     */
     protected $notFoundHandler;
 
     /**
@@ -61,15 +84,21 @@ class Router implements RequestHandlerInterface
         $this->middlewareCollection = new RouteCollection();
         $this->routeCollection      = new RouteCollection();
 
-        $this->exceptionHandler = function($handler, $exception) 
+        // Default handler.
+        $this->setExceptionHandler(function($request, $handler, $path, $exception) 
         {
-            return $handler->responseFactory->internalServerError('<h1>Error</h1>' . $exception->getMessage());
-        };
+            return $handler
+                ->responseFactory
+                ->internalServerError('<h1>Error 500</h1><p>' . $exception->getMessage() . '</p>');
+        });
 
-        $this->notFoundHandler = function($request, $handler, $pathOverride) 
+        // Default handler.
+        $this->setNotFoundHandler(function($request, $handler, $path) 
         {
-            return $handler->responseFactory->notFound('404 Nothing found related to "' . $pathOverride . '"');
-        };
+            return $handler
+                ->responseFactory
+                ->notFound('<h1>Error 404</h1><p>Nothing found related to "' . $path . '"</p>');
+        });
     }
 
     public function __get($var) 
@@ -84,41 +113,119 @@ class Router implements RequestHandlerInterface
         return null;
     }
 
+    /**
+     * @param string $namespace
+     * 
+     * @return $this
+     */
+    public function setDefaultNamespace(string $namespace) 
+    {
+        $this->defaultNamespace = $namespace;
+        return $this;
+    }
+
+    /**
+     * Set a custom handler for exceptions. 
+     * 
+     * @param callable $handler
+     * 
+     * @return $this
+     */
     public function setExceptionHandler($handler) 
     {
         $this->exceptionHandler = $handler;
         return $this;
     }
 
+    /**
+     * Set a custom function to be called when no route is found.
+     * 
+     * @param callable $handler
+     * 
+     * @return $this
+     */
     public function setNotFoundHandler($handler) 
     {
         $this->notFoundHandler = $handler;
         return $this;
     }
 
-    public function addRoute(Route $route, ?string $routeName = null) 
+    /**
+     * @param AdinanCenci\Router\Routing\Route $route
+     * 
+     * @return $this
+     */
+    public function addRoute(Route $route) 
     {
-        $this->routeCollection->addRoute($route, $routeName);
+        $this->routeCollection->addRoute($route);
         return $this;
     }
 
-    public function add($methods, string $pattern, $callable, ?string $routeName = null) 
+    /**
+     * @param string $methods
+     * @param string Regex pattern.
+     * @param callable $controller.
+     * 
+     * @return $this
+     */
+    public function add($methods, string $pattern, $controller) 
     {
-        $route = new Route($methods, $pattern, $callable);
-        $this->addRoute($route, $routeName);
+        $route = $this->newRoute($methods, $pattern, $controller);
+        $this->addRoute($route);
         return $this;
     }
 
-    public function addMiddleware(Route $route) 
+    /** Shorthand for ::add() */
+    public function get(string $pattern, $controller) 
     {
-        $this->middlewareCollection->addRoute($route, null);
+        return $this->add('get', $pattern, $controller);
+    }
+
+    /** Shorthand for ::add() */
+    public function post(string $pattern, $controller) 
+    {
+        return $this->add('post', $pattern, $controller);
+    }
+
+    /** Shorthand for ::add() */
+    public function put(string $pattern, $controller) 
+    {
+        return $this->add('put', $pattern, $controller);
+    }
+
+    /** Shorthand for ::add() */
+    public function delete(string $pattern, $controller) 
+    {
+        return $this->add('delete', $pattern, $controller);
+    }
+
+    /** Shorthand for ::add() */
+    public function options(string $pattern, $controller) 
+    {
+        return $this->add('options', $pattern, $controller);
+    }
+
+    /** Shorthand for ::add() */
+    public function patch(string $pattern, $controller) 
+    {
+        return $this->add('patch', $pattern, $controller);
+    }
+
+    /**
+     * @param AdinanCenci\Router\Routing\Route $route
+     * 
+     * @return $this
+     */
+    public function addBeforeMiddleware(Route $route) 
+    {
+        $this->middlewareCollection->addRoute($route);
         return $this;
     }
 
-    public function middleware($methods, string $pattern, $callable) 
+    public function before($methods, string $pattern, $controller) 
     {
-        $middleware = new Route($methods, $pattern, $callable);
-        $this->addMiddleware($middleware);
+        $middleware = $this->newRoute($methods, $pattern, $controller);
+        $this->addBeforeMiddleware($middleware);
         return $this;
     }
 
@@ -158,6 +265,24 @@ class Router implements RequestHandlerInterface
 
         $response = $this->handleRoutes($request, $path);
         return $response;
+    }    
+
+    public function getBaseUrl() : string
+    {
+        $scheme   = Globals::getScheme();
+        $password = Globals::getPassword();
+        $username = Globals::getUser();
+        $host     = Globals::getHost();
+        $port     = Globals::getPort();
+        $path     = str_replace(Server::getServerRoot(), '', $this->baseDirectory);
+        $uri      = new Uri($scheme, $username, $password, $host, $port, $path, '', '');
+
+        return (string) $uri;
+    }
+
+    public function getUrl(string $path) : string
+    {
+        return $this->getBaseUrl() . ltrim($path, '/');
     }
 
     /**
@@ -170,11 +295,19 @@ class Router implements RequestHandlerInterface
         header('HTTP/' . $response->getProtocolVersion() . ' ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase());
 
         foreach ($response->getHeaders() as $headerName => $value) {
-            $value = is_string($value)
-                ? $value 
-                : implode(' ', $value);
+            if (is_string($value)) {
+                header($headerName . ': ' . $value);
+                continue;
+            }
+            
+            if (! $this->containFields($value)) {
+                header($headerName . ': ' . implode(' ', $value));
+                continue;
+            }
 
-            header($headerName . ': ' . $value);
+            foreach ($value as $v) {
+                header($headerName . ': ' . $v, false);
+            }
         }
 
         echo $response->getBody();
@@ -202,44 +335,38 @@ class Router implements RequestHandlerInterface
         return null;
     }
 
-    protected function handleRoutes($request, $pathOverride) 
+    protected function handleRoutes($request, $path) : ?ResponseInterface
     {
-        $route = $this->getMatchingRoute($request, $pathOverride);
+        $route = $this->getMatchingRoute($request, $path);
         if (! $route) {
-            return $this->error404($request, $this, $pathOverride);
+            return call_user_func_array($this->notFoundHandler, [$request, $this, $path]);
         }
 
         try {
             $response = $route->callIt($request, $this);
-        } catch (CallbackException $e) {
+        } catch (\Exception $e) {
             $response = $e;
         }
 
-        if ($response instanceof CallbackException) {
-            return $this->handleException($response);
+        if ($response instanceof \Exception) {
+            $response = call_user_func_array($this->exceptionHandler, [$request, $this, $path, $response]);
         }
 
         return $response;
     }
 
-    protected function handleException(\Exception $exception) 
+    protected function getMatchingMiddlewares(ServerRequestInterface $request, ?string $path = null) : array
     {
-        $function = $this->exceptionHandler;
-        return $function($this, $exception);
+        return $this->middlewareCollection->getMatchingRoutes($request, $path);
     }
 
-    protected function getMatchingRoute(ServerRequestInterface $request, ?string $pathOverride = null) : ?Route 
+    protected function getMatchingRoute(ServerRequestInterface $request, ?string $path = null) : ?Route 
     {
-        $routes = $this->routeCollection->getMatchingRoutes($request, $pathOverride);
+        $routes = $this->routeCollection->getMatchingRoutes($request, $path);
 
         return $routes 
             ? reset($routes) 
             : null;
-    }
-
-    protected function getMatchingMiddlewares(ServerRequestInterface $request, ?string $pathOverride = null) : array
-    {
-        return $this->middlewareCollection->getMatchingRoutes($request, $pathOverride);
     }
 
     /**
@@ -256,31 +383,63 @@ class Router implements RequestHandlerInterface
         return str_replace($this->baseDirectory, '', $woulBePath);
     }
 
-    public function getBaseUrl() : string
+    protected function newRoute($methods, $pattern, $controller) 
     {
-        $scheme   = Globals::getScheme();
-        $password = Globals::getPassword();
-        $username = Globals::getUser();
-        $host     = Globals::getHost();
-        $port     = Globals::getPort();
-        $path     = str_replace(Server::getServerRoot(), '', $this->baseDirectory);
-        $uri      = new Uri($scheme, $username, $password, $host, $port, $path, '', '');
-
-        return (string) $uri;
-    }
-
-    public function getUrl($path) 
-    {
-        return $this->getBaseUrl() . ltrim($path, '/');
+        if (is_string($controller) || is_array($controller)) {
+            $controller = $this->namespaced($controller, $this->defaultNamespace);
+        }
+        return new Route($methods, $pattern, $controller);
     }
 
     /**
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     * 
-     * @return Psr\Http\Message\ResponseInterface
+     * If the callable $subjects lacks a namespace, adds $namespace.
      */
-    protected function error404(ServerRequestInterface $request, $handler, $pathOverride = null) : ResponseInterface
+    protected function namespaced($subject, $namespace) 
     {
-        return call_user_func_array($this->notFoundHandler, [$request, $handler, $pathOverride]);
+        if (is_array($subject) && isset($subject[0]) && is_string($subject[0])) {
+            $subject[0] = $this->namespaced($subject[0]);
+            return $subject;
+        }
+
+        if (! is_string($subject)) {
+            return $subject;
+        }
+
+        if (substr_count($subject, '\\')) {
+            return $subject;
+        }
+
+        $namespace = rtrim($namespace, '\\') . '\\';
+
+        if (substr_count($subject, '::')) {
+            $parts = explode('::', $subject);
+            $subject = $parts[0];
+        }
+
+        if (function_exists($subject) || class_exists($subject)) {
+            $namespaced = $subject;
+        } else if (function_exists($namespace . $subject) || class_exists($namespace . $subject)) {
+            $namespaced = $namespace . $subject;
+        } else {
+            $namespaced = $subject;
+        }
+
+        if (isset($parts)) {
+            $parts[0] = $namespaced;
+            $namespaced = implode('::', $parts);
+        }
+
+        return $namespaced;
+    }
+
+    protected function containFields($header) 
+    {
+        foreach ($header as $h) {
+            if (substr_count($h, '=') || substr_count($h, ';')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
