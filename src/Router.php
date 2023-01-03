@@ -316,16 +316,15 @@ class Router implements RequestHandlerInterface
     /**
      * @return null|ResponseInterface
      */
-    protected function handleMiddlewares(ServerRequestInterface $request, string $pathOverride) : ?ResponseInterface
+    protected function handleMiddlewares(ServerRequestInterface $request, string $path) : ?ResponseInterface
     {
-        $handler = $this;
         if ($this->matchingMiddlewares === null) {
-            $this->matchingMiddlewares = $this->getMatchingMiddlewares($request, $pathOverride);
+            $this->matchingMiddlewares = $this->getMatchingMiddlewares($request, $path);
         }
 
         while ($this->matchingMiddlewares) {
             $middleware = array_shift($this->matchingMiddlewares);
-            $response = $middleware->callIt($request, $handler);
+            $response = $middleware->callIt($request, $this, $path);
 
             if ($response instanceof ResponseInterface) {
                 return $response;
@@ -343,7 +342,7 @@ class Router implements RequestHandlerInterface
         }
 
         try {
-            $response = $route->callIt($request, $this);
+            $response = $route->callIt($request, $this, $path);
         } catch (\Exception $e) {
             $response = $e;
         }

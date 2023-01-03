@@ -30,6 +30,12 @@ function html($html = '')
         margin: 0px;
         padding: 0px 0px 0px 16px;
     }
+    code {
+        display: inline-block;
+        background: #444;
+        border-radius: 5px;
+        padding: 2px;
+    }
     </style>
     </head>
     <body>
@@ -46,6 +52,13 @@ function html($html = '')
                     <li><a href="' . $router->getUrl('the-router/accepts/classes') . '">a class</a></li>   
                     <li><a href="' . $router->getUrl('the-router/accepts/psr-15-middlewares') . '">a middleware</a></li>
                     <li><a href="' . $router->getUrl('the-router/accepts/files') . '">a file</a></li>
+                </ul>
+
+                <p>A few more examples:</p>
+                <ul>
+                    <li><a href="' . $router->getUrl('query-parameters?foo=something&bar=other thing') . '">query parameters</a></li>
+                    <li><a href="' . $router->getUrl('post-request') . '">post request</a></li>
+                    <li><a href="' . $router->getUrl('product/category-here/id-goes-here') . '">getting attributes from the url</a></li>
                 </ul>
             </div>
 

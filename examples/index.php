@@ -40,6 +40,38 @@ $router->add('get', '#^the-router/accepts/files$#', 'include/file.php');
 $router->add('get', '#^$#', 'homePage');
 
 
+$router->add('get', '#product/(?<category>[\w-]+)/(?<id>[\w-]+)#', function($request, $handler) 
+{
+    echo html('<h1>Path attributes</h1>
+    <b>category</b>: ' . $request->getAttribute('category') . '<br>' .
+    '<b>id</b>: ' . $request->getAttribute('id'));
+});
+
+
+$router->add('post|get', '#post-request$#', function($request, $handler) 
+{
+    echo html('<h1>Post request</h1>
+    <b>name</b>: ' . $request->post('name') . ' <br>
+    <b>surname</b>: ' . $request->post('surname') . '
+    <h2>Form</h2>
+    <form method="post">
+        <label>Name:</label><input type="text" name="name" /><br>
+        <label>Surname:</label><input type="text" name="surname" />
+        <input type="submit" value="send" />
+    </form>');
+});
+
+
+$router->add('get', '#query-parameters$#', function($request, $handler) 
+{
+    echo html('<h1>Query parameters</h1>
+    <b>foo</b>: ' . $request->get('foo') . ' <br>
+    <b>bar</b>: ' . $request->get('bar'));
+});
+
+
+
+
 
 /************************************************************
 **** Middlewares

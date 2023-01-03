@@ -73,7 +73,8 @@ $r->add('get', '#anonymous-function$#', function($request, $handler)
 
 //-------------
 
-// Of course, it also accepts instances of Psr\Http\Server\MiddlewareInterfac ( see the PSR-15 specification )
+// Of course, it also accepts instances of Psr\Http\Server\MiddlewareInterfac 
+// ( see the PSR-15 specification for more information )
 ->add('get', '#psr-15$#', $middleware)
 
 //-------------
@@ -82,20 +83,20 @@ $r->add('get', '#anonymous-function$#', function($request, $handler)
 
 //-------------
 
-// It will call the ::__invoke() magic method.
 ->add('get', '#object$#', $object)
+// The ::__invoke() magic method will be called.
 
 //-------------
 
-// It will attempt to instantiate the class first.
 ->add('get', '#class-and-method$#', ['MyClass', 'methodName'])
+// It will attempt to instantiate the class first.
 // A single string also works:
 ->add('get', '#class-and-method$#', 'MyClass::methodName')
 
 //-------------
 
-// It will attempt to instantiate the class and call the ::__invoke() magic method.
 ->add('get', '#class$#', ['MyClass'])
+// It will attempt to instantiate the class and call the ::__invoke() magic method.
 ```
 
 See the contents of the "examples" directory for more details.
@@ -109,7 +110,7 @@ $r->post('#home#', $call);    /* is the same as */ $r->add('post', '#home#', $ca
 $r->put('#home#', $call);     /* is the same as */ $r->add('put', '#home#', $call);
 $r->delete('#home#', $call);  /* is the same as */ $r->add('delete', '#home#', $call);
 $r->options('#home#', $call); /* is the same as */ $r->add('options', '#home#', $call);
-$r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $call);<br><br><br>
+$r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $call);
 ```
 
 <br><br><br>

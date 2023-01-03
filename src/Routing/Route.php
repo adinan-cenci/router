@@ -65,10 +65,13 @@ class Route
         return preg_match($this->pathPattern, $path);
     }
 
-    public function callIt(ServerRequestInterface $request, RequestHandlerInterface $handler) 
+    public function callIt(ServerRequestInterface $request, RequestHandlerInterface $handler, ?string $path = null) 
     {
-        //preg_match($this->pathPattern, $path, $attributes);
-        //$request = $request->withAttributes($attributes);
+        preg_match($this->pathPattern, $path, $attributes);
+
+        foreach ($attributes as $attribute => $value) {
+            $request = $request->withAttribute($attribute, $value);
+        }
 
         return $this->controller instanceof MiddlewareInterface
             ? $this->callMiddleware($request, $handler)
