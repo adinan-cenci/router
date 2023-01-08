@@ -2,9 +2,8 @@
     "name": "adinan-cenci/router", 
     "description": "A small PHP router library.", 
     "type": "library", 
-    "keywords": ["router"], 
+    "keywords": ["http", "router", "psr", "psr-15", "psr-7", "psr-17"], 
     "license": "MIT",
-    "version": "3.0.2", 
     "authors": [
         {
             "name": "Adinan Cenci", 
@@ -12,10 +11,25 @@
             "role": "developer"
         }
     ], 
-    "require": { "php": ">=5.3" }, 
+    "require": { 
+        "php": ">=7.4",
+        "adinancenci/psr-17": "^1.0.0",
+        "psr/http-server-handler": "1.0.x-dev",
+        "psr/http-server-middleware": "1.0.x-dev"
+    }, 
     "autoload": {
         "psr-4": {
             "AdinanCenci\\Router\\": "src/"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/adinan-cenci/psr-7.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/adinan-cenci/psr-17.git"
+        }
+    ]
 }

@@ -2,107 +2,114 @@
 
 A simple PHP router to handle http requests.
 
-- [How it works](#how-it-works)
-- [Methods](#methods)
-  - [::add() Add routes](#addmethods---patterns-callback)
-  - [::add() Shorthands](#add-shorthands)
-  - [::set404() No match found](#set404callback)
-  - [::before() Middleware](#beforemethods---patterns-callback)
-  - [::namespace()](#namespacenamespace)
-  - [::header404()](#header404replace--true-responsecode--404) 
-  - [::passParametersAsArray($bool = true)](#passParametersAsArray)
-  - [::run()](#run)
-  - [::parameter($index, $alternative = null)](#parameterindex-alternative--null)
-- [Working inside subdirectories](#working-inside-subdirectories)
-- [Server configuration](#server-configuration)
-  - [Apache](#apache)
-  - [Nginx](#nginx)
-  - [IIS](#iis)
-- [Installing](#installing)
-- [License](#license)
+This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant and therefore works with [PSR-7](https://www.php-fig.org/psr/psr-7/) messages and makes use of [PSR-17](https://www.php-fig.org/psr/psr-17/) factories.
 
+<br><br><br>
 
-
-## How it works
+## Instantiating
 
 ```php
-// Instantiate
-
-use \AdinanCenci\Router\Router;
+use AdinanCenci\Router\Router;
 $r = new Router();
+```
 
-//---Defining the routes----------------------
+<br><br><br>
 
-$r->get(['#^$#', '#home$#'], function() // an anonymous function
+## Adding routes
+
+You may add routes by informing the http method, the regex pattern to be matched against the the path and the associated controller:
+
+```php
+$r->add('get', '#home$#', 'controller');
+```
+
+### Http method
+
+```php
+// You may inform a single http method:
+$r->add('get', '#home#', 'controller')
+
+// Or several inside an array ...
+$r->add(['get', 'post'], '#home#', 'controller')
+
+// Or in a pipe separated string
+$r->add('get|post', '#home#', 'controller')
+
+// Or use an sterisk to match all methods.
+$r->add('*', '#home#', 'controller')
+```
+
+### Regex patterns
+
+A simple regex pattern. Capture groups will be passed to the controller as attributes.
+
+**Obs**: The route accepts multiple patterns as an array.
+
+```php
+$r->add('*', '#products/(?<category>\d+)/(?<id>\d+)#', function($request, $handler) 
 {
-    echo 'This is the home page.';
+   $category  = $request->getAttribute('category', null);
+   $productId = $request->getAttribute('id', null);
+});
+```
+
+### Controllers
+
+The controller will receive two paramaters: an instance of  `Psr\Http\Message\ServerRequestInterface` and `Psr\Http\Server\RequestHandlerInterface` respectively.
+
+The routes accept various arguments as controllers:
+
+```php
+$r->add('get', '#anonymous-function$#', function($request, $handler) 
+{
+    echo 'Anonymous function';
 })
 
 //-------------
 
-->get('#about-us$#', 'aboutPage') // a named function
-
-
-//-------------
-
-// Methods of classes, if the method is not static, 
-// the router wil try to instantiate an object to 
-// call the method
-
-->get('#product/(\d+)$#',  'Product::getProduct') 
-->post('#product/(\d+)$#', 'Product::saveProduct')
-    
-//-------------
-    
-->set404(function($uri) 
-{
-    Router::header404();
-    echo 'Error 404, nothing found related to '.$uri;
-});
+->add('get', '#named-function$#', 'namedFunction')
 
 //-------------
 
-// And set it to run, that's it
-$r->run();
+->add('get', '#static-methods$#', ['MyClass', 'staticMethod'])
+// A single string also works:
+->add('get', '#static-methods$#', 'MyClass::staticMethod')
 
+//-------------
+
+// Of course, it also accepts instances of Psr\Http\Server\MiddlewareInterfac 
+// ( see the PSR-15 specification for more information )
+->add('get', '#psr-15$#', $middleware)
+
+//-------------
+
+->add('get', '#object-and-method$#', [$object, 'methodName'])
+
+//-------------
+
+->add('get', '#object$#', $object)
+// The ::__invoke() magic method will be called.
+
+//-------------
+
+->add('get', '#class-and-method$#', ['MyClass', 'methodName'])
+// It will attempt to instantiate the class first.
+// A single string also works:
+->add('get', '#class-and-method$#', 'MyClass::methodName')
+
+//-------------
+
+->add('get', '#class$#', ['MyClass'])
+// It will attempt to instantiate the class and call the ::__invoke() magic method.
 ```
+
+**Obs**: If the controller does not exist or cannot be called because of some reason or another, an exception will be thrown.
 
 See the contents of the "examples" directory for more details.
-<br><br><br>  
-## Methods
 
-### ::add($methods = '*', $patterns, $callback)
-
-Defines a route and the respective callback. Note that only the callback of the first matching route will be executed.
-
-- $methods: A string representing the http methods ( GET, POST, PUT, DELETE, OPTIONS and PATCH ) separated with \| or a single '*' for all of them. This parameter is also optional.
-- $patterns: Regex or array of regex patterns to be tested against the requested URI.
-- $callback: An anonymous function, the name of a function, the method of a class or the path to a file to be required. The router will attempt to instantiate classes in order to call non-static methods. Capture groups in the regex patterns will be passed as parameters to the callback. If the callback is a valid path to a file, the captured groups will be available inside an array called `$parameters`.
-
-```php
-// Examples
-$r->add('#home$#', function() 
-{
-    echo 'This callback will be executed 
-    on all http requests with URIs ending with "home".';
-});
-
-$r->add('get|post', '#about$#', function() 
-{
-    echo 'This callback will be executed 
-    only on get/post request with URIs ending with "about".';
-});
-
-$r->add('get|post', ['#user/(\w+)$#', '#u/(\w+)$#'], function($handle) 
-{
-    echo 'This callback will be executed 
-    only on get/post request with URIs ending with "user/'.$handle.'" or "u/'.$handle.'"' ;
-});
-```
-<br><br>  
 ### ::add() shorthands
 
-```php 
+```php
 // Examples
 $r->get('#home#', $call);     /* is the same as */ $r->add('get', '#home#', $call);
 $r->post('#home#', $call);    /* is the same as */ $r->add('post', '#home#', $call);
@@ -111,112 +118,191 @@ $r->delete('#home#', $call);  /* is the same as */ $r->add('delete', '#home#', $
 $r->options('#home#', $call); /* is the same as */ $r->add('options', '#home#', $call);
 $r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $call);
 ```
-<br><br>  
-### ::set404($callback)
 
-Define a method to call when all defined routes fail to match against the requested URI. The $callback function will receive by parameter the unmatched uri.
+<br><br><br>
+
+## Executing
+
+Calling `::run()` will execute the router and send a respose.
 
 ```php
-// Example
-$r->set404(function($uri) 
+$r->run();
+```
+
+<br><br><br>
+
+## PSR compliance
+
+This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/). The handler make [PSR-17](https://www.php-fig.org/psr/psr-17/) factories available to use.
+
+```php
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+$r->add('get', '#home$#', function(ServerRequestInterface $request, RequestHandlerInterface $handler)
 {
-    echo 'Error 404, nothing found related to '.$uri;
+   // Psr\Http\Message\ResponseFactoryInterface instance.
+   $responseFactory = $handler->responseFactory;
+
+   // Returns an instance of ResponseInterface with code 200.
+   return $responseFactory->createResponse(200, 'OK');
 });
 ```
-<br><br>  
-### ::before($methods = '*', $patterns, $callback)
 
-Defines a middleware and the respective callback. The middlewares will be matched against the requested URI before the actual routes, and unlike the routes, more than one middleware callback may be executed. It accepts the the same parameter as ::add()
+### **IMPORTANT**
+
+If your controller does not return an instance of `ResponseInterface`, the router will create one based out of whatever was outputed through `echo` and `print`.
+
+### Niceties
+
+Besides being PSR-17 compliant, the response factory comes with some methods to make things easier:
+
+```php
+$responseFactory = $handler->responseFactory;
+
+// Response with code 200
+$responseFactory->ok('your html here');
+
+// Response with code 201
+$responseFactory->created('your html here');
+
+// Response with code 301
+$responseFactory->movedPermanently('https://redirect.here.com');
+
+// Response with code 302
+$responseFactory->movedTemporarily('https://redirect.here.com');
+
+// Response with code 400
+$responseFactory->badRequest('your html here');
+
+// Response with code 401
+$responseFactory->unauthorized('your html here');
+
+// Response with code 403
+$responseFactory->forbidden('your html here');
+
+// Response with code 404
+$responseFactory->notFound('your html here');
+
+// Response with code 500
+$responseFactory->internalServerError('your html here');
+
+// Response with code 501
+$responseFactory->notImplemented('your html here');
+
+// Response with code 502
+$responseFactory->badGateway('your html here');
+
+// Response with code 503
+$responseFactory->serviceUnavailable('your html here');
+```
+
+Adding cookies to a response object is made easier with `::withAddedCookie()`:
+
+```php
+$response = $responseFactory->ok('your html here');
+
+$expires  = null;  // optional
+$path     = '';    // optional
+$domain   = '';    // optional
+$secure   = false; // optional
+$httpOnly = false; // optional
+
+$response = $response->withAddedCookie('cookieName', 'cookieValue', $expires, $path, $domain, $secure, $httpOnly);
+```
+
+<br><br><br>
+
+## Middlewares
+
+Middlewares will be processed before the routes. Middlewares are very similar to routes but unlike routes more than one middleware may be executed.
 
 ```php
 // Example
-$r->before('*', '#restricted-area#', function() 
+$r->before('*', '#restricted-area#', function($request, $handler) 
 {
     if (! userIsLogged()) {
-        header('Location: /login'); 
+        return $handler->responseFactory->movedTemporarily('/login-page');
     }
 });
 ```
-<br><br>  
-### ::passParametersAsArray($bool = true)
-By default the captured groups will be passed as individual parameters to the callbacks. By calling 
-this method they will instead be passed in a single associative array.
+
+<br><br><br>
+
+## Errors
+
+### Exceptions
+
+By default catched exceptions will be rendered in a 500 response object, you may customize it by setting your own handler.
+
 ```php
-// Default behaviour:
-$r->add('#products/(?<category>\d+)/(?<id>\d+)#', function($category, $id) 
+$r->setExceptionHandler(function($request, $handler, $path, $exception) 
 {
-    echo $category.', '.$id;
+    return $handler->responseFactory
+      ->internalServerError('<h1>Error 500 (' . $path . ')</h1><p>' . $exception->getMessage() . '</p>');
 });
-
-
-// As a single array:
-$r->passParametersAsArray();
-
-
-$r->add('#products/(?<category>\d+)/(?<id>\d+)#', function($parameters) 
-{
-    echo $parameters['category'].', '.$parameters['id'];
-});
-
 ```
-<br><br>  
 
-### ::setNamespace($namespace)
+### Not found
 
-Set the default namespace, so there will be no need to write the entire class name of the callback when defining the routes.
+By default when no route is found, the router will render a 404 response object, you may customize it by setting your own handler.
+
+```php
+$r->setNotFoundHandler(function($request, $handler, $path) 
+{
+    return $handler->notFound
+      ->internalServerError('<h1>Error 404</h1><p>Nothing found related to "' . $path . '"</p>');
+});
+```
+
+<br><br><br>
+
+### ::setDefaultNamespace($namespace)
+
+Set the default namespace, so there will be no need to write the entire class name of the controller when defining routes.
 
 ```php
 // Example
-$r->setNamespace('\MyProject\\');
+$r->setNamespace('MyProject');
 
-$r->add('#home#', 'MyClass::method');
-// The router will assume it refers to \MyProject\MyClass::method()
+$r->add('get', '#home#', 'MyClass::method');
+// If MyClass does not exist, the router will assume it refers to 
+// MyProject\MyClass::method()
 ```
-<br><br>  
-### ::header404($replace = true, $responseCode = 404)
 
-Just a helpful static method to send a 404 header.
+<br><br><br>
 
-```php
-Router::header404(); // -> HTTP/1.0 404 Not Found
-```
-<br><br>  
-### ::run()
+## Working inside sub-directories
 
-Executes the router. First it will try to match the request URI and http method to <u>all</u> middlewares, 
-then it follows with the proper routes. 
+The router will automatically work inside sub-directories.
 
-Unlike the middlewares, the router will execute the callback of the first matching route and stop.
-
-It will throw an exception if unable to execute the callback associated.
-<br><br><br>  
-
-### ::parameter($index, $alternative = null)
-
-Besides beign passed as parameters to the callbacks, the capture groups can also be accessed through this 
-method.
-<br><br><br>  
-
-## Working inside subdirectories
-
-The router will automatically work inside sub-folders. Consider the example:
+Consider the example:
 Your URL: `http://yourwebsite.com/foobar/about`
-If your router is inside `/www/foobar/`, the router will match the routes against `about` and <u>**not**</u> `foobar/about`.
 
-Still, if you need to work with `foobar/about` instead, then you must pass `/www/` as your base directory to the Router class' constructor.
+Your document root is
+`/var/www/html/` and your router is inside of 
+`/var/www/html/foobar/`.
+
+The router will match the routes against `about` and <u>**NOT**</u> `foobar/about`.
+
+Still, if you really need to work with `foobar/about` , then you must pass `/var/www/html/` as your base directory to the Router class' constructor.
 
 ```php
-//               /www/foobar/index.php
-$r = new Router('/www/');
+//               /var/www/html/foobar/index.php
+$r = new Router('/var/www/html/');
 ```
-<br><br>  
+
+<br><br><br>
+
 ## Server configuration
 
 In order for it to work, we need to rewrite the requests to the file containing our router. Below are some examples:  
 
-
 ### Apache
+
 Here is the example of a .htaccess for Apache:
+
 ```
 RewriteEngine on
 
@@ -227,10 +313,13 @@ RewriteCond %{SCRIPT_FILENAME} !-d
 # Rewrite to index.php
 RewriteRule ^.{1,}$   index.php   [QSA]
 ```
-<br><br>  
+
+<br><br><br>
 
 ### Nginx
+
 Here is the example for nginx:
+
 ```
 location / {
     if ($script_filename !~ "-f") {
@@ -238,10 +327,13 @@ location / {
     }
 }
 ```
-<br><br>  
+
+<br><br><br>
 
 ### IIS
+
 Here is the example of a web.config for Microsoft IIS:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
@@ -261,16 +353,18 @@ Here is the example of a web.config for Microsoft IIS:
     </system.webServer>
 </configuration>
 ```
-<br><br>  
 
+<br><br><br>
 
 ## Installing
+
 Use composer
+
 ```
 composer require adinan-cenci/router
 ```
-<br><br>  
 
+<br><br><br>
 
 ## License
 
