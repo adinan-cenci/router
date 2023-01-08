@@ -264,7 +264,7 @@ Set the default namespace, so there will be no need to write the entire class na
 
 ```php
 // Example
-$r->setNamespace('MyProject');
+$r->setDefaultNamespace('MyProject');
 
 $r->add('get', '#home#', 'MyClass::method');
 // If MyClass does not exist, the router will assume it refers to 
