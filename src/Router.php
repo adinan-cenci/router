@@ -163,12 +163,12 @@ class Router implements RequestHandlerInterface
 
     /**
      * @param string $methods
-     * @param string Regex pattern.
+     * @param string|string[] Regex pattern.
      * @param callable $controller.
      * 
      * @return $this
      */
-    public function add($methods, string $pattern, $controller) 
+    public function add($methods, $pattern, $controller) 
     {
         $route = $this->newRoute($methods, $pattern, $controller);
         $this->addRoute($route);
@@ -176,37 +176,37 @@ class Router implements RequestHandlerInterface
     }
 
     /** Shorthand for ::add() */
-    public function get(string $pattern, $controller) 
+    public function get($pattern, $controller) 
     {
         return $this->add('get', $pattern, $controller);
     }
 
     /** Shorthand for ::add() */
-    public function post(string $pattern, $controller) 
+    public function post($pattern, $controller) 
     {
         return $this->add('post', $pattern, $controller);
     }
 
     /** Shorthand for ::add() */
-    public function put(string $pattern, $controller) 
+    public function put($pattern, $controller) 
     {
         return $this->add('put', $pattern, $controller);
     }
 
     /** Shorthand for ::add() */
-    public function delete(string $pattern, $controller) 
+    public function delete($pattern, $controller) 
     {
         return $this->add('delete', $pattern, $controller);
     }
 
     /** Shorthand for ::add() */
-    public function options(string $pattern, $controller) 
+    public function options($pattern, $controller) 
     {
         return $this->add('options', $pattern, $controller);
     }
 
     /** Shorthand for ::add() */
-    public function patch(string $pattern, $controller) 
+    public function patch($pattern, $controller) 
     {
         return $this->add('patch', $pattern, $controller);
     }
@@ -222,7 +222,7 @@ class Router implements RequestHandlerInterface
         return $this;
     }
 
-    public function before($methods, string $pattern, $controller) 
+    public function before($methods, $pattern, $controller) 
     {
         $middleware = $this->newRoute($methods, $pattern, $controller);
         $this->addBeforeMiddleware($middleware);

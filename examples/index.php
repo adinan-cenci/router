@@ -100,7 +100,7 @@ $router->add('*', '#^admin$#', 'adminPage');
 // Customizing the 404 page
 $router->setNotFoundHandler(function($request, $handler, $path) 
 {
-    return $handler->responseFactory->notFound(html('<h1>404 Nothing found</h1>related to "' . $path . '"'));
+    return $handler->responseFactory->notFound(html('<h1>Error 404: Nothing found</h1>Nothing found related to "' . $path . '"'));
 });
 
 
@@ -120,7 +120,7 @@ $router->add('get', '#^the-router/will-not-accept/a-class-with-dependencies$#', 
 // How to handle exceptions
 $router->setExceptionHandler(function($request, $handler, $path, $exception) 
 {
-    return $handler->responseFactory->internalServerError(html('<h1>Error</h1>' . $exception->getMessage()));
+    return $handler->responseFactory->internalServerError(html('<h1>Error 500</h1>' . $exception->getMessage()));
 });
 
 

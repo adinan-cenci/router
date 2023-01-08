@@ -18,10 +18,10 @@ class Route
     protected array $methods;
 
     /**
-     * @var string $pathPattern
-     *   Regex pattern to be matched against the request's uri.
+     * @var string[] $pathPatterns
+     *   Regex pattern to be matched against the request's path.
      */
-    protected string $pathPattern;
+    protected array $pathPatterns;
 
     /**
      * @var mixed $controller
@@ -33,10 +33,10 @@ class Route
 
     /**
      * @param string|string[] $methods
-     * @param string $pathPattern
+     * @param string|string[] $pathPatterns
      * @param mixed $controller
      */
-    public function __construct($methods, string $pathPattern, $controller) 
+    public function __construct($methods, $pathPatterns, $controller) 
     {
         if ($methods == '*') {
             $methods = 'GET|POST|PUT|DELETE|OPTIONS|PATCH';
@@ -46,9 +46,9 @@ class Route
             ? array_filter($methods, 'is_string')
             : explode('|', $methods);
 
-        $this->methods      = array_map('strtoupper', (array) $methods);
-        $this->pathPattern  = $pathPattern;
-        $this->controller   = $controller;
+        $this->methods       = array_map('strtoupper', (array) $methods);
+        $this->pathPatterns  = (array) $pathPatterns;
+        $this->controller    = $controller;
     }
 
     public function doesItMatcheRequest(ServerRequestInterface $request, ?string $path = null) : bool
@@ -62,12 +62,21 @@ class Route
             return false;
         }
 
-        return preg_match($this->pathPattern, $path);
+        foreach ($this->pathPatterns as $pattern) {
+            if (preg_match($pattern, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function callIt(ServerRequestInterface $request, RequestHandlerInterface $handler, ?string $path = null) 
     {
-        preg_match($this->pathPattern, $path, $attributes);
+        foreach ($this->pathPatterns as $pattern) {
+            $attributes = [];
+            preg_match($pattern, $path, $attributes);
+        }
 
         foreach ($attributes as $attribute => $value) {
             $request = $request->withAttribute($attribute, $value);

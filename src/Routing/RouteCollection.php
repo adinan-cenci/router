@@ -30,7 +30,7 @@ class RouteCollection
      * @param string|string[] $methods
      *   The http methods ( get, post, put etc ) in the form of a "|" 
      *   separated string or an array.
-     * @param string $pattern 
+     * @param string|string[] $pattern 
      *   Regex expressions to match against the URI's path.
      * @param mixed $callable 
      *   An anonymous function, the name of a function, the method of a class, 
@@ -41,7 +41,7 @@ class RouteCollection
      * 
      * @return self
      */
-    public function add($methods, string $pattern, $callable, $routeName = null) 
+    public function add($methods, $pattern, $callable, $routeName = null) 
     {
         $this->addRoute(new Route($methods, $pattern, $callable), $routeName);
         return $this;

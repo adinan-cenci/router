@@ -17,7 +17,7 @@ $r = new Router();
 
 ## Adding routes
 
-You may add routes by informing the http method, the regex pattern to be matched against the the path and the controller to be called:
+You may add routes by informing the http method, the regex pattern to be matched against the the path and the associated controller:
 
 ```php
 $r->add('get', '#home$#', 'controller');
@@ -43,6 +43,8 @@ $r->add('*', '#home#', 'controller')
 
 A simple regex pattern. Capture groups will be passed to the controller as attributes.
 
+**Obs**: The route accepts multiple patterns as an array.
+
 ```php
 $r->add('*', '#products/(?<category>\d+)/(?<id>\d+)#', function($request, $handler) 
 {
@@ -52,6 +54,8 @@ $r->add('*', '#products/(?<category>\d+)/(?<id>\d+)#', function($request, $handl
 ```
 
 ### Controllers
+
+The controller will receive two paramaters: an instance of  `Psr\Http\Message\ServerRequestInterface` and `Psr\Http\Server\RequestHandlerInterface` respectively.
 
 The routes accept various arguments as controllers:
 
@@ -99,6 +103,8 @@ $r->add('get', '#anonymous-function$#', function($request, $handler)
 // It will attempt to instantiate the class and call the ::__invoke() magic method.
 ```
 
+**Obs**: If the controller does not exist or cannot be called because of some reason or another, an exception will be thrown.
+
 See the contents of the "examples" directory for more details.
 
 ### ::add() shorthands
@@ -127,7 +133,7 @@ $r->run();
 
 ## PSR compliance
 
-This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/) and [PSR-17](https://www.php-fig.org/psr/psr-17/).
+This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/). The handler make [PSR-17](https://www.php-fig.org/psr/psr-17/) factories available to use.
 
 ```php
 use Psr\Http\Message\ServerRequestInterface;
@@ -210,7 +216,7 @@ $response = $response->withAddedCookie('cookieName', 'cookieValue', $expires, $p
 
 ## Middlewares
 
-Middlewares will be processed before the routes, both are very similar but unlike routes, more than one middleware may be executed.
+Middlewares will be processed before the routes. Middlewares are very similar to routes but unlike routes more than one middleware may be executed.
 
 ```php
 // Example
@@ -234,7 +240,7 @@ By default catched exceptions will be rendered in a 500 response object, you may
 $r->setExceptionHandler(function($request, $handler, $path, $exception) 
 {
     return $handler->responseFactory
-      ->internalServerError('<h1>Error 500</h1><p>' . $exception->getMessage() . '</p>');
+      ->internalServerError('<h1>Error 500 (' . $path . ')</h1><p>' . $exception->getMessage() . '</p>');
 });
 ```
 
@@ -261,21 +267,26 @@ Set the default namespace, so there will be no need to write the entire class na
 $r->setNamespace('MyProject');
 
 $r->add('get', '#home#', 'MyClass::method');
-// The router will assume it refers to MyProject\MyClass::method()
+// If MyClass does not exist, the router will assume it refers to 
+// MyProject\MyClass::method()
 ```
 
 <br><br><br>
 
-## Working inside subdirectories
+## Working inside sub-directories
 
-The router will automatically work inside sub-folders.
+The router will automatically work inside sub-directories.
 
 Consider the example:
 Your URL: `http://yourwebsite.com/foobar/about`
 
-If your router is inside `/var/www/html/foobar/`, the router will match the routes against `about` and <u>**not**</u> `foobar/about`.
+Your document root is
+`/var/www/html/` and your router is inside of 
+`/var/www/html/foobar/`.
 
-Still, if you need to work with `foobar/about` instead, then you must pass `/var/www/html/` as your base directory to the Router class' constructor.
+The router will match the routes against `about` and <u>**NOT**</u> `foobar/about`.
+
+Still, if you really need to work with `foobar/about` , then you must pass `/var/www/html/` as your base directory to the Router class' constructor.
 
 ```php
 //               /var/www/html/foobar/index.php
