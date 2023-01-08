@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## 4.0.0 - Unreleased
+## 4.0.0 - 2023-01-08
 
 The library was rewriten from scratch around the [PSR-15](https://www.php-fig.org/psr/psr-15/), [PSR-7](https://www.php-fig.org/psr/psr-7/) and [PSR-17](https://www.php-fig.org/psr/psr-17/) specifications.
 
@@ -37,7 +37,7 @@ The library was rewriten from scratch around the [PSR-15](https://www.php-fig.or
 
 - `::setNotFoundHandler()`
 
-
+---
 
 ## 3.0.2 - 2021-11-13
 
