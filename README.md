@@ -280,8 +280,8 @@ The router will automatically work inside sub-directories.
 Consider the example:
 Your URL: `http://yourwebsite.com/foobar/about`
 
-Your document root is
-`/var/www/html/` and your router is inside of 
+Your document root is  
+`/var/www/html/` and your router is inside of  
 `/var/www/html/foobar/`.
 
 The router will match the routes against `about` and <u>**NOT**</u> `foobar/about`.
