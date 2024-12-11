@@ -251,7 +251,7 @@ By default when no route is found, the router will render a 404 response object,
 ```php
 $r->setNotFoundHandler(function($request, $handler, $path) 
 {
-    return $handler->notFound
+    return $handler->responseFactory
       ->internalServerError('<h1>Error 404</h1><p>Nothing found related to "' . $path . '"</p>');
 });
 ```

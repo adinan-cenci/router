@@ -43,22 +43,22 @@ function html($html = '')
             <div class="region menu">
                 <p>What will work:</p>
                 <ul>
-                    <li><a href="' . $router->getUrl('the-router/accepts/anonymous-functions') . '">anonymous function</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/named-functions') . '">named function</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/static-methods') . '">static method</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/methods') . '">class and method name</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/an-object-and-its-method') . '">an object and a method</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/objects') . '">an object</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/classes') . '">a class</a></li>   
-                    <li><a href="' . $router->getUrl('the-router/accepts/psr-15-middlewares') . '">a middleware</a></li>
-                    <li><a href="' . $router->getUrl('the-router/accepts/files') . '">a file</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/anonymous-functions') . '">anonymous function</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/named-functions') . '">named function</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/static-methods') . '">static method</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/methods') . '">class and method name</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/an-object-and-its-method') . '">an object and a method</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/objects') . '">an object</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/classes') . '">a class</a></li>   
+                    <li><a href="' . $router->getUrl('/the-router/accepts/psr-15-middlewares') . '">a middleware</a></li>
+                    <li><a href="' . $router->getUrl('/the-router/accepts/files') . '">a file</a></li>
                 </ul>
 
                 <p>A few more examples:</p>
                 <ul>
-                    <li><a href="' . $router->getUrl('query-parameters?foo=something&bar=other thing') . '">query parameters</a></li>
-                    <li><a href="' . $router->getUrl('post-request') . '">post request</a></li>
-                    <li><a href="' . $router->getUrl('product/category-here/id-goes-here') . '">getting attributes from the url</a></li>
+                    <li><a href="' . $router->getUrl('/query-parameters?foo=something&bar=other thing') . '">query parameters</a></li>
+                    <li><a href="' . $router->getUrl('/post-request') . '">post request</a></li>
+                    <li><a href="' . $router->getUrl('/product/category-here/id-goes-here') . '">getting attributes from the url</a></li>
                 </ul>
             </div>
 
