@@ -2,14 +2,11 @@
 
 namespace AdinanCenci\Router\Routing;
 
-use AdinanCenci\Router\Helper\Executor;
-use AdinanCenci\Router\Exception\CallbackException;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
-class Route
+class Route implements RouteInterface
 {
     /**
      * @var string[] $methods
@@ -55,15 +52,7 @@ class Route
     }
 
     /**
-     * Checks if $request matches the route.
-     *
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     *   The request object.
-     * @param string|null $path
-     *   If informed, it will be used instead of the $request's path.
-     *
-     * @return bool
-     *   True if the request matches the route.
+     * {@inheritdoc}
      */
     public function doesItMatcheRequest(ServerRequestInterface $request, ?string $path = null): bool
     {
@@ -86,18 +75,9 @@ class Route
     }
 
     /**
-     * Executes the controller.
-     *
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     *   The request object.
-     * @param Psr\Http\Server\RequestHandlerInterface $handler
-     *   Request handler object.
-     * @param string|null $path
-     *   If informed, it will be used instead of the $request's path.
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
-    public function callIt(ServerRequestInterface $request, RequestHandlerInterface $handler, ?string $path = null)
+    public function extractAttributes(ServerRequestInterface $request, ?string $path = null): array
     {
         $path = $path !== null
             ? $path
@@ -108,66 +88,14 @@ class Route
             preg_match($pattern, $path, $attributes);
         }
 
-        foreach ($attributes as $attribute => $value) {
-            $request = $request->withAttribute($attribute, $value);
-        }
-
-        return $this->controller instanceof MiddlewareInterface
-            ? $this->callMiddleware($request, $handler)
-            : $this->allTheRest($request, $handler);
+        return $attributes;
     }
 
     /**
-     * Handles specifically middleware controllers.
-     *
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     *   The request object.
-     * @param Psr\Http\Server\RequestHandlerInterface $handler
-     *   Request handler object.
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
-    protected function callMiddleware(ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function getController()
     {
-        return $this->controller->process($request, $handler);
-    }
-
-    /**
-     * Handles the other types of controllers.
-     *
-     * @param Psr\Http\Message\ServerRequestInterface $request
-     *   The request object.
-     * @param Psr\Http\Server\RequestHandlerInterface $handler
-     *   Request handler object.
-     *
-     * @return mixed
-     */
-    protected function allTheRest(ServerRequestInterface $request, RequestHandlerInterface $handler)
-    {
-        ob_start();
-
-        $executor = new Executor($this->controller, ['request' => $request, 'handler' => $handler]);
-
-        try {
-            $response = $executor->callIt();
-        } catch (CallbackException $e) {
-            return $e;
-        }
-
-        if ($response instanceof ResponseInterface) {
-            ob_end_clean();
-            return $response;
-        }
-
-        $contents = is_string($response) && $response 
-            ? $response
-            : ob_get_clean();
-
-        if ($contents === '' || $contents === null) {
-            return null;
-        }
-
-        $response = $handler->responseFactory->ok($contents);
-        return $response;
+        return $this->controller;
     }
 }

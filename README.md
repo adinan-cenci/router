@@ -156,7 +156,7 @@ If your controller does not return an instance of `ResponseInterface`, the route
 
 ### Niceties
 
-Besides being PSR-17 compliant, the response factory comes with some methods to make things easier:
+Besides being PSR-17 compliant, the default response factory comes with some methods to make things easier:
 
 ```php
 $responseFactory = $handler->responseFactory;
@@ -216,7 +216,7 @@ $response = $response->withAddedCookie('cookieName', 'cookieValue', $expires, $p
 
 ## Middlewares
 
-Middlewares will be processed before the routes. Middlewares are very similar to routes but unlike routes more than one middleware may be executed.
+Middlewares will be processed before the routes. Middlewares are similar to routes but unlike routes more than one middleware may be executed.
 
 ```php
 // Example

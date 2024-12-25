@@ -2,19 +2,26 @@
 
 namespace AdinanCenci\Router;
 
+use AdinanCenci\Router\Caller\Caller as DefaultCaller;
+use AdinanCenci\Router\Caller\CallerInterface;
+use AdinanCenci\Router\Caller\Exception\CallbackException;
+use AdinanCenci\Router\Helper\Executor;
 use AdinanCenci\Router\Helper\Server;
 use AdinanCenci\Router\Helper\File;
 use AdinanCenci\Router\Routing\RouteCollection;
 use AdinanCenci\Router\Routing\Route;
-use AdinanCenci\Router\Exception\CallbackException;
+use AdinanCenci\Router\Routing\RouteInterface;
 use AdinanCenci\Psr7\Uri;
 use AdinanCenci\Psr17\ServerRequestFactory;
-use AdinanCenci\Psr17\ResponseFactory;
-use AdinanCenci\Psr17\StreamFactory;
+use AdinanCenci\Psr17\ResponseFactory as DefaultResponseFactory;
+use AdinanCenci\Psr17\StreamFactory as DefaultStreamFactory;
 use AdinanCenci\Psr17\Helper\Globals;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 /**
  * @property-read AdinanCenci\Psr17\ResponseFactory $responseFactory
@@ -28,6 +35,12 @@ class Router implements RequestHandlerInterface
      *   determine the path that will be matched against the routes.
      */
     protected string $baseDirectory;
+
+    /**
+     * @var AdinanCenci\Router\Caller\CallerInterface;
+     *   Object to execute the controllers.
+     */
+    protected CallerInterface $caller;
 
     /**
      * @var string $defaultNamespace
@@ -55,16 +68,16 @@ class Router implements RequestHandlerInterface
     protected ?array $matchingMiddlewares = null;
 
     /**
-     * @var AdinanCenci\Psr17\ResponseFactory
+     * @var Psr\Http\Message\ResponseFactoryInterface
      *   A response factory object.
      */
-    protected ResponseFactory $responseFactory;
+    protected ResponseFactoryInterface $responseFactory;
 
     /**
-     * @var AdinanCenci\Psr17\StreamFactory
+     * @var Psr\Http\Message\StreamFactoryInterface
      *   A stream factory.
      */
-    protected StreamFactory $streamFactory;
+    protected StreamFactoryInterface $streamFactory;
 
     /**
      * @var callable $exceptionHandler
@@ -75,9 +88,9 @@ class Router implements RequestHandlerInterface
     protected $exceptionHandler;
 
     /**
-     * @var callable $exceptionHandler
+     * @var callable $notFoundHandler
      *   A function to be called when no route is found.
-     *   The callback function will receive 3 parameters:
+     *   The callback will receive 3 parameters:
      *   (ServerRequestInterface $request, RequestHandlerInterface $handler, string $path)
      */
     protected $notFoundHandler;
@@ -86,27 +99,47 @@ class Router implements RequestHandlerInterface
      * @param string|null $baseDirectory
      *   Absolute path. If not informed, the current file's parent directory
      *   will be used.
+     * @param null|Psr\Http\Message\ResponseFactoryInterface
+     *   PSR compliant response factory.
+     *   If not provided, the default implementation will be used.
+     * @param null|Psr\Http\Message\StreamFactoryInterface
+     *   PSR compliant stream factory.
+     *   If not provided, the default implementation will be used.
+     * @param null|AdinanCenci\Router\Caller\CallerInterface $caller
+     *   Object to execute the controllers.
+     *   If not provided, the default implementation will be used.
      */
-    public function __construct(?string $baseDirectory = null)
-    {
+    public function __construct(
+        ?string $baseDirectory = null,
+        ?ResponseFactoryInterface $responseFactory = null,
+        ?StreamFactoryInterface $streamFactory = null,
+        ?CallerInterface $caller = null
+    ) {
         $this->baseDirectory = $baseDirectory
             ? File::trailingSlash(File::forwardSlash($baseDirectory))
             : File::getParentDirectory(Server::getCurrentFile());
 
-        $this->responseFactory      = new ResponseFactory();
-        $this->streamFactory        = new StreamFactory();
+        $this->caller = $caller
+            ? $caller
+            : DefaultCaller::withDefaultHandlers();
+
+        $this->responseFactory = $responseFactory
+            ? $responseFactory
+            : new DefaultResponseFactory();
+
+        $this->streamFactory = $streamFactory
+            ? $streamFactory
+            : new DefaultStreamFactory();
 
         $this->middlewareCollection = new RouteCollection();
         $this->routeCollection      = new RouteCollection();
 
-        // Default handler.
         $this->setExceptionHandler(function ($request, $handler, $path, $exception) {
             return $handler
                 ->responseFactory
                 ->internalServerError('<h1>Error 500</h1><p>' . $exception->getMessage() . '</p>');
         });
 
-        // Default handler.
         $this->setNotFoundHandler(function ($request, $handler, $path) {
             return $handler
                 ->responseFactory
@@ -176,7 +209,7 @@ class Router implements RequestHandlerInterface
     /**
      * Adds a route to the collection.
      *
-     * @param AdinanCenci\Router\Routing\Route $route
+     * @param AdinanCenci\Router\Routing\RouteInterface $route
      *   The route.
      *
      * @return AdinanCenci\Router\Router
@@ -307,13 +340,13 @@ class Router implements RequestHandlerInterface
     /**
      * Adds a route to the before middleware collection.
      *
-     * @param AdinanCenci\Router\Routing\Route $route
+     * @param AdinanCenci\Router\Routing\RouteInterface $route
      *   The route.
      *
      * @return AdinanCenci\Router\Router
      *   This.
      */
-    public function addBeforeMiddleware(Route $route)
+    public function addBeforeMiddleware(RouteInterface $route)
     {
         $this->middlewareCollection->addRoute($route);
         return $this;
@@ -470,7 +503,7 @@ class Router implements RequestHandlerInterface
 
         while ($this->matchingMiddlewares) {
             $middleware = array_shift($this->matchingMiddlewares);
-            $response = $middleware->callIt($request, $this, $path);
+            $response = $this->executeRoutesController($request, $path, $middleware);
 
             if ($response instanceof ResponseInterface) {
                 return $response;
@@ -485,7 +518,7 @@ class Router implements RequestHandlerInterface
      *
      * @param Psr\Http\Message\ServerRequestInterface
      *   Request object.
-     * @param string|null $path To override the request's path.
+     * @param string|null $path
      *   If informed, it will be used instead of the $request's path.
      *
      * @return null|Psr\Http\Message\ResponseInterface
@@ -503,7 +536,7 @@ class Router implements RequestHandlerInterface
         }
 
         try {
-            $response = $route->callIt($request, $this, $path);
+            $response = $this->executeRoutesController($request, $path, $route);
         } catch (\Exception $e) {
             $response = $e;
         }
@@ -516,11 +549,92 @@ class Router implements RequestHandlerInterface
     }
 
     /**
+     * Executes the controller of a given route.
+     *
+     * @param Psr\Http\Message\ServerRequestInterface
+     *   Request object.
+     * @param string|null $path
+     *   If informed, it will be used instead of the $request's path.
+     * @param AdinanCenci\Router\Routing\RouteInterface
+     *   The route which's controller will be executed.
+     *
+     * @return mixed
+     *   A response of some kind,
+     *   preferably one implementing ResponseInterface.
+     */
+    protected function executeRoutesController(ServerRequestInterface $request, ?string $path, RouteInterface $route)
+    {
+        $attributes = $route->extractAttributes($request, $path);
+        $controller = $route->getController();
+
+        foreach ($attributes as $attribute => $value) {
+            $request = $request->withAttribute($attribute, $value);
+        }
+
+        return $controller instanceof MiddlewareInterface
+            ? $this->callMiddleware($request, $controller)
+            : $this->callAllTheRest($request, $controller);
+    }
+
+    /**
+     * Handles specifically middleware controllers.
+     *
+     * @param Psr\Http\Message\ServerRequestInterface $request
+     *   The request object.
+     * @param Psr\Http\Server\MiddlewareInterface $controller
+     *   Request handler object.
+     *
+     * @return mixed
+     */
+    protected function callMiddleware(ServerRequestInterface $request, MiddlewareInterface $controller)
+    {
+        return $controller->process($request, $this);
+    }
+
+    /**
+     * Handles the other types of controllers.
+     *
+     * @param Psr\Http\Message\ServerRequestInterface $request
+     *   The request object.
+     * @param mixed $controller
+     *   The callback.
+     *
+     * @return mixed
+     */
+    protected function callAllTheRest(ServerRequestInterface $request, $controller)
+    {
+        ob_start();
+
+        try {
+            $response = $this->caller->callIt($controller, ['request' => $request, 'handler' => $this]);
+        } catch (CallbackException $e) {
+            return $e;
+        }
+
+        if ($response instanceof ResponseInterface) {
+            ob_end_clean();
+            return $response;
+        }
+
+        $contents = is_string($response) && $response
+            ? $response
+            : ob_get_clean();
+
+        if ($contents === '' || $contents === null) {
+            return null;
+        }
+
+        $response = $this->responseFactory->ok($contents);
+        return $response;
+    }
+
+    /**
      * Returns middlewares that match the request.
      *
      * @param Psr\Http\Message\ServerRequestInterface
      *   Request object.
-     * @param string|null $path To override the request's path.
+     * @param string|null $path
+     *   To override the request's path.
      *   If informed, it will be used instead of the $request's path.
      *
      * @return AdinanCenci\Router\Routing\Route[]
@@ -536,10 +650,11 @@ class Router implements RequestHandlerInterface
      *
      * @param Psr\Http\Message\ServerRequestInterface
      *   Request object.
-     * @param string|null $path To override the request's path.
+     * @param string|null $path
+     *   To override the request's path.
      *   If informed, it will be used instead of the $request's path.
      *
-     * @return null|AdinanCenci\Router\Routing\Route
+     * @return null|AdinanCenci\Router\Routing\RouteInterface
      *   Matching route.
      */
     protected function getMatchingRoute(ServerRequestInterface $request, ?string $path = null): ?Route
@@ -579,14 +694,15 @@ class Router implements RequestHandlerInterface
      * @param mixed $controller
      *   The callback.
      *
-     * @return AdinanCenci\Router\Routing\Route
-     *   Route.
+     * @return AdinanCenci\Router\Routing\RouteInterface
+     *   Route object.
      */
     protected function newRoute($methods, $pattern, $controller)
     {
         if (is_string($controller) || is_array($controller)) {
             $controller = $this->namespaced($controller, $this->defaultNamespace);
         }
+
         return new Route($methods, $pattern, $controller);
     }
 
