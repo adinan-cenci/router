@@ -55,7 +55,7 @@ $r->add('*', '#products/(?<category>\d+)/(?<id>\d+)#', function($request, $handl
 
 ### Controllers
 
-The controller will receive two paramaters: an instance of  `Psr\Http\Message\ServerRequestInterface` and `Psr\Http\Server\RequestHandlerInterface` respectively.
+The controller will receive two paramaters: an instance of  `Psr\Http\Message\ServerRequestInterface` and `Psr\Http\Server\RequestHandlerInterface` ( the router itself ) respectively.
 
 The routes accept various arguments as controllers:
 
@@ -133,7 +133,15 @@ $r->run();
 
 ## PSR compliance
 
-This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/). The handler make [PSR-17](https://www.php-fig.org/psr/psr-17/) factories available to use.
+This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/).
+
+### **IMPORTANT**
+
+If your controller does not return an instance of `ResponseInterface`, the router will create a generic response based out of whatever was outputed through `echo` and `print`.
+
+### Niceties
+
+The handler makes available a [PSR-17](https://www.php-fig.org/psr/psr-17/) response and stream factories to more convienently create responses.
 
 ```php
 use Psr\Http\Message\ServerRequestInterface;
@@ -145,18 +153,12 @@ $r->add('get', '#home$#', function(ServerRequestInterface $request, RequestHandl
    // Psr\Http\Message\ResponseFactoryInterface instance.
    $responseFactory = $handler->responseFactory;
 
-   // Returns an instance of ResponseInterface with code 200.
-   return $responseFactory->createResponse(200, 'OK');
+   // Psr\Http\Message\StreamFactoryInterface instance.
+   $streamFactory = $handler->streamFactory;
 });
 ```
 
-### **IMPORTANT**
-
-If your controller does not return an instance of `ResponseInterface`, the router will create one based out of whatever was outputed through `echo` and `print`.
-
-### Niceties
-
-Besides being PSR-17 compliant, the default response factory comes with some methods to make things easier:
+And the default response factory comes with some methods to make things easier:
 
 ```php
 $responseFactory = $handler->responseFactory;
