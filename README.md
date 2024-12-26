@@ -307,7 +307,7 @@ Those factories will made available to the controllers, as [explained earlier](#
 
 ### Custom controller types
 
-The fourth parameter is an instance of `AdinanCenci\Router\Caller\CallerInterface`, it is the object that will execute the controllers.
+The constructor's fourth parameter is an instance of `AdinanCenci\Router\Caller\CallerInterface`, it is the object that will execute the controllers.
 
 If not provided, the default caller will be used.  
 This default caller makes use of [several implementations](https://github.com/adinan-cenci/router/tree/master/src/Caller/Handler) of `AdinanCenci\Router\Caller\Handler\HandlerInterface` to support the different types of controllers [listed earlier](#controllers).
@@ -319,9 +319,9 @@ You can write your own handlers and callers to support your own version of a con
 So the router supports classes as controllers, how are they instantiated ?
 
 The default `ClassHandler` and `MethodHandler` depend on an instance of `AdinanCenci\Router\Instantiator\InstantiatorInterface`.  
-The default implementation simply calls `new`. 
+The default implementation simply calls `new` to instantiate them. 
 
-If you wish use automatic dependency injection, you will need to write your own caller/handler/instantiator. 
+If you wish use automatic dependency injection, you will need to provide your own caller/handler/instantiator. 
 
 How dependency injection is handled is beyond the escope of the library.
 
