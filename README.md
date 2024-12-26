@@ -300,7 +300,7 @@ $r = new Router('/var/www/html/');
 
 ### Factories
 
-The second and third parameters are a PSR-17 response and stream factories respectively.
+The constructor's second and third parameters are a PSR-17 response and stream factories respectively.  
 If not provided, generic implementations will be used.
 
 Those factories will made available to the controllers, as [explained earlier](#factories).
@@ -309,14 +309,21 @@ Those factories will made available to the controllers, as [explained earlier](#
 
 The fourth parameter is an instance of `AdinanCenci\Router\Caller\CallerInterface`, it is the object that will execute the controllers.
 
-If not provided, the default caller will be used.
+If not provided, the default caller will be used.  
 This default caller makes use of [several implementations](https://github.com/adinan-cenci/router/tree/master/src/Caller/Handler) of `AdinanCenci\Router\Caller\Handler\HandlerInterface` to support the different types of controllers [listed earlier](#controllers).
 
 You can write your own handlers and callers to support your own version of a controller.
 
 ### Dependency injection
 
+So the router supports classes as controllers, how are they instantiated ?
 
+The default `ClassHandler` and `MethodHandler` depend on an instance of `AdinanCenci\Router\Instantiator\InstantiatorInterface`.  
+The default implementation simply calls `new`. 
+
+If you wish use automatic dependency injection, you will need to write your own caller/handler/instantiator. 
+
+How dependency injection is handled is beyond the escope of the library.
 
 <br><br><br>
 
