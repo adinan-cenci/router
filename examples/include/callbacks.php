@@ -13,7 +13,7 @@ function namedFunction($request, $handler)
     echo html('<h1>A named function</h1>The router accepts named function, namespaced or not.');
 }
 
-class SomeClass 
+class SomeClass
 {
     public function __invoke($request, $handler) 
     {
@@ -43,7 +43,7 @@ class SomeClass
     }
 }
 
-class AnotherClass 
+class AnotherClass
 {
     public function __invoke($request, $handler) 
     {
@@ -51,14 +51,14 @@ class AnotherClass
     }
 }
 
-class YetAnotherClass 
+class YetAnotherClass
 {
     public function __construct($foo, $bar) {}
 
     public function __invoke() {}
 }
 
-function loginPage($request, $handler) 
+function loginPage($request, $handler)
 {
     if (userIsLoggedIn($request)) {
         return $handler->responseFactory
@@ -83,7 +83,7 @@ function loginPage($request, $handler)
     </form>');
 }
 
-function adminPage($request, $handler) 
+function adminPage($request, $handler)
 {
     return html('<h1>Admin page</h1><a href="' . $handler->getUrl('logout') . '">logout</a>');
 }
@@ -95,7 +95,7 @@ function logoutPage($request, $handler)
     ->withAddedCookie('loggedIn', 'false', -1);
 }
 
-class Middleware implements \Psr\Http\Server\MiddlewareInterface 
+class Middleware implements \Psr\Http\Server\MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

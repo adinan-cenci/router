@@ -1,5 +1,6 @@
-<?php 
-use \AdinanCenci\Router\Router;
+<?php
+
+use AdinanCenci\Router\Router;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -40,16 +41,14 @@ $router->add('get', '#^the-router/accepts/files$#', 'include/file.php');
 $router->add('get', '#^$#', 'homePage');
 
 
-$router->add('get', '#product/(?<category>[\w-]+)/(?<id>[\w-]+)#', function($request, $handler) 
-{
+$router->add('get', '#product/(?<category>[\w-]+)/(?<id>[\w-]+)#', function ($request, $handler) {
     echo html('<h1>Path attributes</h1>
     <b>category</b>: ' . $request->getAttribute('category') . '<br>' .
     '<b>id</b>: ' . $request->getAttribute('id'));
 });
 
 
-$router->add('post|get', '#post-request$#', function($request, $handler) 
-{
+$router->add('post|get', '#post-request$#', function ($request, $handler) {
     echo html('<h1>Post request</h1>
     <b>name</b>: ' . $request->post('name') . ' <br>
     <b>surname</b>: ' . $request->post('surname') . '
@@ -62,8 +61,7 @@ $router->add('post|get', '#post-request$#', function($request, $handler)
 });
 
 
-$router->add('get', '#query-parameters$#', function($request, $handler) 
-{
+$router->add('get', '#query-parameters$#', function ($request, $handler) {
     echo html('<h1>Query parameters</h1>
     <b>foo</b>: ' . $request->get('foo') . ' <br>
     <b>bar</b>: ' . $request->get('bar'));
@@ -79,8 +77,7 @@ $router->add('get', '#query-parameters$#', function($request, $handler)
 
 // While only one router will be executed, all matching middlewares will have their turn,
 // unless if a middleware returns a response, then the router finishes earlier.
-$router->before('*', '#^admin/?#', function($request, $handler) 
-{
+$router->before('*', '#^admin/?#', function ($request, $handler) {
     if (! userIsLoggedIn($request)) {
         return $handler->responseFactory
         ->movedTemporarily($handler->getUrl('login'));
@@ -98,8 +95,7 @@ $router->add('*', '#^admin$#', 'adminPage');
 ************************************************************/
 
 // Customizing the 404 page
-$router->setNotFoundHandler(function($request, $handler, $path) 
-{
+$router->setNotFoundHandler(function ($request, $handler, $path) {
     return $handler->responseFactory->notFound(html('<h1>Error 404: Nothing found</h1>Nothing found related to "' . $path . '"'));
 });
 
@@ -118,8 +114,7 @@ $router->add('get', '#^the-router/will-not-accept/a-class-with-dependencies$#', 
 
 
 // How to handle exceptions
-$router->setExceptionHandler(function($request, $handler, $path, $exception) 
-{
+$router->setExceptionHandler(function ($request, $handler, $path, $exception) {
     return $handler->responseFactory->internalServerError(html('<h1>Error 500</h1>' . $exception->getMessage()));
 });
 
