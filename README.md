@@ -98,7 +98,7 @@ $r->add('get', '#anonymous-function$#', function($request, $handler)
 
 //-------------
 
-// Of course, it also accepts instances of Psr\Http\Server\MiddlewareInterfac 
+// Of course, it also accepts instances of Psr\Http\Server\MiddlewareInterface
 // ( see the PSR-15 specification for more information )
 ->add('get', '#psr-15$#', $middleware)
 
@@ -125,6 +125,23 @@ $r->patch('#home#', $call);   /* is the same as */ $r->add('patch', '#home#', $c
 
 <br><br><br>
 
+## Middlewares
+
+Middlewares will be processed before the routes.  
+Middlewares are similar to routes but unlike routes more than one middleware may be executed.
+
+```php
+// Example
+$r->before('*', '#restricted-area#', function($request, $handler) 
+{
+    if (! userIsLogged()) {
+        return $handler->responseFactory->movedTemporarily('/login-page');
+    }
+});
+```
+
+<br><br><br>
+
 ## Executing
 
 Calling `::run()` will execute the router and send a respose.
@@ -139,7 +156,7 @@ $r->run();
 
 This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/).
 
-**IMPORTANT**
+**IMPORTANT**  
 If your controller does not return an instance of `ResponseInterface`, the router will create a generic response based out of whatever was outputed through `echo` and `print`.
 
 Besides the defaults, the router offers some niceties.
@@ -161,11 +178,7 @@ $r->add('get', '#home#', 'MyClass::method');
 The handler makes available a [PSR-17](https://www.php-fig.org/psr/psr-17/) response and stream factories to make creating responses more convenient.
 
 ```php
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-
-$r->add('get', '#home$#', function(ServerRequestInterface $request, RequestHandlerInterface $handler)
+$r->add('get', '#home$#', function($request, $handler)
 {
    // Psr\Http\Message\ResponseFactoryInterface instance.
    $responseFactory = $handler->responseFactory;
@@ -175,7 +188,7 @@ $r->add('get', '#home$#', function(ServerRequestInterface $request, RequestHandl
 });
 ```
 
-In this spirit of making things easier, the default response factory comes a series of useful methods:
+In this spirit of making things easier, the default response factory comes with a series of useful methods:
 
 ```php
 $responseFactory = $handler->responseFactory;
@@ -231,22 +244,6 @@ $secure   = false; // optional
 $httpOnly = false; // optional
 
 $response = $response->withAddedCookie('cookieName', 'cookieValue', $expires, $path, $domain, $secure, $httpOnly);
-```
-
-<br><br><br>
-
-## Middlewares
-
-Middlewares will be processed before the routes. Middlewares are similar to routes but unlike routes more than one middleware may be executed.
-
-```php
-// Example
-$r->before('*', '#restricted-area#', function($request, $handler) 
-{
-    if (! userIsLogged()) {
-        return $handler->responseFactory->movedTemporarily('/login-page');
-    }
-});
 ```
 
 <br><br><br>
