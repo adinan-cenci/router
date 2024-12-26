@@ -97,7 +97,7 @@ class Router implements RequestHandlerInterface
 
     /**
      * @param string|null $baseDirectory
-     *   Absolute path. If not informed, the current file's parent directory
+     *   Absolute path. If not provided, the current file's parent directory
      *   will be used.
      * @param null|Psr\Http\Message\ResponseFactoryInterface
      *   PSR compliant response factory.
@@ -379,7 +379,7 @@ class Router implements RequestHandlerInterface
      * response, then it goes to the routes proper.
      *
      * @param null|Psr\Http\Message\ServerRequestInterface
-     *   The request, if not informed the router will instantiate one itself
+     *   The request, if not provided the router will instantiate one itself
      *   from global values
      *
      * @return void

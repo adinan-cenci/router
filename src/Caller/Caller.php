@@ -68,7 +68,7 @@ class Caller implements CallerInterface
      *
      * @param null|AdinanCenci\Router\Instantiator\InstantiatorInterface $instantiator
      *   An object capable of instantiating other objects.
-     *   If none is informed, the default built in implementation will be used.
+     *   If none is informed, the default built-in implementation will be used.
      *
      * @return AdinanCenci\Router\Caller\CallerInterface
      *   The caller object.
