@@ -152,6 +152,34 @@ $r->run();
 
 <br><br><br>
 
+## Error handling
+
+### Exceptions
+
+By default, catched exceptions will be rendered in a 500 response object, you may customize it by setting your own handler.
+
+```php
+$r->setExceptionHandler(function($request, $handler, $path, $exception) 
+{
+    return $handler->responseFactory
+      ->internalServerError('<h1>Error 500 (' . $path . ')</h1><p>' . $exception->getMessage() . '</p>');
+});
+```
+
+### Not found
+
+By default when no route is found, the router will render a 404 response object, you may customize it by setting your own handler.
+
+```php
+$r->setNotFoundHandler(function($request, $handler, $path) 
+{
+    return $handler->responseFactory
+      ->internalServerError('<h1>Error 404</h1><p>Nothing found related to "' . $path . '"</p>');
+});
+```
+
+<br><br><br>
+
 ## PSR compliance and niceties
 
 This library is [PSR-15](https://www.php-fig.org/psr/psr-15/) compliant, as such your controllers may tailor the response in details as specified in the [PSR-7](https://www.php-fig.org/psr/psr-7/).
@@ -244,34 +272,6 @@ $secure   = false; // optional
 $httpOnly = false; // optional
 
 $response = $response->withAddedCookie('cookieName', 'cookieValue', $expires, $path, $domain, $secure, $httpOnly);
-```
-
-<br><br><br>
-
-## Error handling
-
-### Exceptions
-
-By default, catched exceptions will be rendered in a 500 response object, you may customize it by setting your own handler.
-
-```php
-$r->setExceptionHandler(function($request, $handler, $path, $exception) 
-{
-    return $handler->responseFactory
-      ->internalServerError('<h1>Error 500 (' . $path . ')</h1><p>' . $exception->getMessage() . '</p>');
-});
-```
-
-### Not found
-
-By default when no route is found, the router will render a 404 response object, you may customize it by setting your own handler.
-
-```php
-$r->setNotFoundHandler(function($request, $handler, $path) 
-{
-    return $handler->responseFactory
-      ->internalServerError('<h1>Error 404</h1><p>Nothing found related to "' . $path . '"</p>');
-});
 ```
 
 <br><br><br>
