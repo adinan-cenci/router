@@ -386,11 +386,20 @@ class Router implements RequestHandlerInterface
      */
     public function run(?ServerRequestInterface $request = null): void
     {
-        $request = $request
-            ? $request
-            : (new ServerRequestFactory())->createFromGlobals();
+        if ($request) {
+            $response = $this->handle($request);
+            $this->sendResponse($response);
+        }
 
-        $response = $this->handle($request);
+        try {
+            $factory  = new ServerRequestFactory();
+            $request  = $factory->createFromGlobals();
+            $response = $this->handle($request);
+        } catch (\Exception $exception) {
+            $request  = $exception->getRequest();
+            $path     = $request->getUri()->getPath();
+            $response = call_user_func_array($this->exceptionHandler, [$request, $this, $path, $exception]);
+        }
 
         $this->sendResponse($response);
     }
@@ -457,7 +466,11 @@ class Router implements RequestHandlerInterface
      */
     protected function sendResponse(ResponseInterface $response): void
     {
-        header('HTTP/' . $response->getProtocolVersion() . ' ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase());
+        header(
+            'HTTP/' . $response->getProtocolVersion() . ' ' .
+            $response->getStatusCode() . ' ' .
+            $response->getReasonPhrase()
+        );
 
         foreach ($response->getHeaders() as $headerName => $value) {
             if (is_string($value)) {
@@ -535,14 +548,21 @@ class Router implements RequestHandlerInterface
             return call_user_func_array($this->notFoundHandler, [$request, $this, $path]);
         }
 
+        $exception = null;
+        $response  = null;
+
         try {
             $response = $this->executeRoutesController($request, $path, $route);
-        } catch (\Exception $e) {
-            $response = $e;
+        } catch (\Exception $exception) {
+            // Catch.
         }
 
-        if ($response instanceof \Exception) {
-            $response = call_user_func_array($this->exceptionHandler, [$request, $this, $path, $response]);
+        $exception = $response instanceof \Exception
+            ? $response
+            : $exception;
+
+        if ($exception) {
+            $response = call_user_func_array($this->exceptionHandler, [$request, $this, $path, $exception]);
         }
 
         return $response;
@@ -599,7 +619,8 @@ class Router implements RequestHandlerInterface
      * @param mixed $controller
      *   The callback.
      *
-     * @return mixed
+     * @return \Exception|Psr\Http\Message\ResponseInterface
+     *   A response object in success. An exception in failure.
      */
     protected function callAllTheRest(ServerRequestInterface $request, $controller)
     {
