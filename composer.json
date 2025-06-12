@@ -13,7 +13,7 @@
     ], 
     "require": { 
         "php": ">=7.4",
-        "adinan-cenci/psr-17": "^1.0.0",
+        "adinan-cenci/psr-17": ">=1.0",
         "psr/http-server-handler": "1.0.x-dev",
         "psr/http-server-middleware": "1.0.x-dev"
     }, 
